@@ -67,15 +67,15 @@ public class Scene extends JPanel implements KeyListener {
         }
 
         try {
-            imgR = ImageIO.read(new File("src/main/resources/R.png"));
-            imgS = ImageIO.read(new File("src/main/resources/S.png"));
+            imgR = ImageIO.read(new File("src/main/resources/tracer/R.png"));
+            imgS = ImageIO.read(new File("src/main/resources/tracer/S.png"));
         } catch (IOException e) {
             System.err.println("Failed to load images.");
             e.printStackTrace();
         }
 
         try {
-            hdrLoader = new HDRLoader("src/main/resources/Assets/.hdr");
+            hdrLoader = new HDRLoader("src/main/resources/tracer/Assets/.hdr");
             useHDR = true; // Set flag to use HDR for rendering
 
             // Initialize the renderer with HDRLoader
@@ -298,7 +298,7 @@ public class Scene extends JPanel implements KeyListener {
         String r = HDRfield.getText();
         // Update ambient light
         try {
-            hdrLoader = new HDRLoader("src/main/resources/Assets/"+r+".hdr");
+            hdrLoader = new HDRLoader("src/main/resources/tracer/Assets/"+r+".hdr");
             useHDR = true; // Set flag to use HDR for rendering
 
             // Initialize the renderer with HDRLoader

@@ -172,7 +172,7 @@ public class HDRLoader {
     // For testing purposes
     public static void main(String[] args) {
         try {
-            HDRLoader hdrLoader = new HDRLoader("Assets/autumn_field_puresky_2k.hdr");
+            HDRLoader hdrLoader = new HDRLoader("tracer/Assets/autumn_field_puresky_2k.hdr");
             System.out.println("Loaded HDR image with width: " + hdrLoader.getWidth() + " and height: " + hdrLoader.getHeight());
         } catch (IOException e) {
             e.printStackTrace();
