@@ -1,4 +1,4 @@
-package com.alba;
+package com.alba.tracer;
 
 public class Sphere {
     public Vector3 center;

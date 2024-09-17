@@ -1,4 +1,4 @@
-package com.alba;
+package com.alba.tracer;
 
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;

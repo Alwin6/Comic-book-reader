@@ -1,4 +1,4 @@
-package com.alba;
+package com.alba.tracer;
 
 public class Vector3 {
     public double x, y, z;

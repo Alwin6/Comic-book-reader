@@ -1,4 +1,4 @@
-package com.alba;
+package com.alba.tracer;
 
 public class Light {
     public Vector3 position;

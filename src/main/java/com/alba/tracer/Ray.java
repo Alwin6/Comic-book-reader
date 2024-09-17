@@ -1,4 +1,4 @@
-package com.alba;
+package com.alba.tracer;
 
 public class Ray {
     public Vector3 origin, direction;

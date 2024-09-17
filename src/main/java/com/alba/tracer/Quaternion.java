@@ -1,4 +1,4 @@
-package com.alba;
+package com.alba.tracer;
 
 public class Quaternion {
     public double x, y, z, w;

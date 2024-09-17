@@ -1,4 +1,4 @@
-package com.alba;
+package com.alba.tracer;
 
 public class Camera {
     private Vector3 origin;            // Camera position
