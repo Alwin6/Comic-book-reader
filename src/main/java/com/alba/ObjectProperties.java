@@ -1,3 +1,5 @@
+package com.alba;
+
 public class ObjectProperties {
     public Vector3 color;
     public double emission;

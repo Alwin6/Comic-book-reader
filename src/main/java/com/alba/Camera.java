@@ -1,3 +1,5 @@
+package com.alba;
+
 public class Camera {
     private Vector3 origin;            // Camera position
     private Vector3 lookAt;            // Where the camera is looking

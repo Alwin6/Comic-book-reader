@@ -1,3 +1,5 @@
+package com.alba;
+
 public class Ray {
     public Vector3 origin, direction;
 

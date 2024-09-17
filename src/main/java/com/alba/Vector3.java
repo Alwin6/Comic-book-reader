@@ -1,3 +1,5 @@
+package com.alba;
+
 public class Vector3 {
     public double x, y, z;
 
@@ -63,9 +65,10 @@ public class Vector3 {
 
     public Vector3 clamp(double min, double max) {
         return new Vector3(
-            Math.min(max, Math.max(min, this.x)),
-            Math.min(max, Math.max(min, this.y)),
-            Math.min(max, Math.max(min, this.z))
+                Math.min(max, Math.max(min, this.x)),
+                Math.min(max, Math.max(min, this.y)),
+                Math.min(max, Math.max(min, this.z))
         );
     }
 }
+

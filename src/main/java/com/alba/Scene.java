@@ -1,3 +1,5 @@
+package com.alba;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;

@@ -1,3 +1,5 @@
+package com.alba;
+
 public class Render {
     private HDRLoader hdrLoader;
     private float[][][] hdrData; // HDR image data

@@ -1,3 +1,5 @@
+package com.alba;
+
 public class Light {
     public Vector3 position;
     public Vector3 color;
