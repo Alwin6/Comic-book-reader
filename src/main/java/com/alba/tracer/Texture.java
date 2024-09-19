@@ -8,9 +8,11 @@ import java.io.IOException;
 public class Texture {
     private BufferedImage image;
     private boolean hasTexture;
+    public String filename;
 
     // Constructor for loading texture from a file
     public Texture(String fileName) {
+        this.filename = fileName;
         try {
             this.image = ImageIO.read(new File("src/main/resources/Assets/" + fileName));
             this.hasTexture = true; // Indicate that this texture has an image loaded
@@ -23,6 +25,7 @@ public class Texture {
 
     // Constructor for no texture (default)
     public Texture() {
+        this.filename = "";
         this.image = null;
         this.hasTexture = false; // Indicate that there is no texture
     }

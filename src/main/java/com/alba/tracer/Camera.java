@@ -12,6 +12,8 @@ public class Camera {
     private double viewportWidth;      // Viewport width
     private double focalLength;        // Focal length of the camera
 
+    public double aspectRatio;
+
     private Quaternion orientation;    // Camera orientation using quaternion
     private static final Vector3 worldUp = new Vector3(0, 1, 0);  // Consistent world up direction
 
@@ -20,6 +22,7 @@ public class Camera {
         this.lookAt = new Vector3(0, 0, 0);    // Look at the origin by default
         this.up = worldUp;                     // Define up direction (Y-axis up)
         this.focalLength = 1.0;
+        this.aspectRatio = aspectRatio;
         this.orientation = new Quaternion(0, 0, 0, 1);  // Identity quaternion
 
         // Calculate the viewport height and width based on the aspect ratio and FOV

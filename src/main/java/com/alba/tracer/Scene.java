@@ -14,7 +14,7 @@ public class Scene extends JPanel implements KeyListener {
     private int height;
     private Vector3 backgroundColor;
     private Camera camera;
-    private Sphere[] spheres;
+    private Shape[] shapes;
     private Light[] lights;
     private Vector3 ambientLight;
     private BufferedImage image;
@@ -28,6 +28,8 @@ public class Scene extends JPanel implements KeyListener {
     private HDRLoader hdrLoader;
     private boolean useHDR = false; // Flag to use HDR if loaded
     private int renderMethod = 0;
+    private int sampleCount = 4;
+    private int selectedObject = -1;
 
     private BufferedImage imgR; // Image R
     private BufferedImage imgS; // Image S
@@ -42,9 +44,32 @@ public class Scene extends JPanel implements KeyListener {
     public JTextField backgroundBField;
     public JTextField FOVField;
     public JTextField HDRfield;
+    public JTextField sampleCountField;
     public JPanel settingsPanel;  // Container for all settings
 
-    public Scene(int width, int height, Sphere[] spheres, Light[] lights, Vector3 ambientLight) {
+    // UI components for edit panel
+    public JTextField objectT;
+    public JTextField originX;
+    public JTextField originY;
+    public JTextField originZ;
+    public JTextField scaleX;
+    public JTextField scaleY;
+    public JTextField scaleZ;
+    public JTextField rotationX;
+    public JTextField rotationY;
+    public JTextField rotationZ;
+    public JTextField colorR;
+    public JTextField colorG;
+    public JTextField colorB;
+    public JTextField emissivity;
+    public JTextField metallicness;
+    public JTextField reflectiveness;
+    public JTextField smoothness;
+    public JTextField transparency;
+    public JTextField texture;
+    public JPanel editPanel;  // Container for all settings
+
+    public Scene(int width, int height, Shape[] shapes, Light[] lights, Vector3 ambientLight) {
         this.width = width;
         this.height = height;
         this.backgroundColor = new Vector3(0, 0, 0);
@@ -52,7 +77,7 @@ public class Scene extends JPanel implements KeyListener {
         double fov = 90.0;  // Field of view of 90 degrees
 
         this.camera = new Camera(aspectRatio, fov);
-        this.spheres = spheres;
+        this.shapes = shapes;
         this.lights = lights;
         this.ambientLight = ambientLight;
         this.image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -120,6 +145,46 @@ public class Scene extends JPanel implements KeyListener {
                             renderMethod = 1;
                             render();
                             repaint();
+                        } else {
+                            // clicking objects
+                            int panelWidth = getWidth();
+                            int panelHeight = getHeight();
+
+
+                            double u = (double) e.getX() / (panelWidth - 1);
+                            double v = (double) (panelHeight - e.getY() - 1) / (panelHeight - 1);
+
+                            Ray ray = camera.getRay(u, v);
+                            int previous = selectedObject;
+                            selectedObject = renderer.traceFind(ray, shapes);
+                            System.out.println(selectedObject);
+                            if (previous == selectedObject) {editPanel.setVisible(false);selectedObject=-1;}
+                            editPanel.setVisible(selectedObject != -1);
+
+                            if (selectedObject != -1) {
+                                objectT.setText(shapes[selectedObject].objectType);
+                                originX.setText(String.valueOf(shapes[selectedObject].origin.x));
+                                originY.setText(String.valueOf(shapes[selectedObject].origin.y));
+                                originZ.setText(String.valueOf(shapes[selectedObject].origin.z));
+                                scaleZ.setText(String.valueOf(shapes[selectedObject].scale.z));
+                                scaleX.setText(String.valueOf(shapes[selectedObject].scale.x));
+                                scaleY.setText(String.valueOf(shapes[selectedObject].scale.y));
+                                rotationX.setText(String.valueOf(shapes[selectedObject].rotation.x));
+                                rotationY.setText(String.valueOf(shapes[selectedObject].rotation.y));
+                                rotationZ.setText(String.valueOf(shapes[selectedObject].rotation.z));
+                                colorR.setText(String.valueOf(shapes[selectedObject].properties.color.x));
+                                colorG.setText(String.valueOf(shapes[selectedObject].properties.color.y));
+                                colorB.setText(String.valueOf(shapes[selectedObject].properties.color.z));
+                                emissivity.setText(String.valueOf(shapes[selectedObject].properties.emission));
+                                metallicness.setText(String.valueOf(shapes[selectedObject].properties.metallicness));
+                                smoothness.setText(String.valueOf(shapes[selectedObject].properties.smoothness));
+                                reflectiveness.setText(String.valueOf(shapes[selectedObject].properties.reflectiveness));
+                                transparency.setText(String.valueOf(shapes[selectedObject].properties.transparency));
+                                texture.setText(shapes[selectedObject].properties.texture.filename);
+                            }
+
+                            render(); repaint();
+
                         }
                     }
                 }
@@ -189,14 +254,14 @@ public class Scene extends JPanel implements KeyListener {
 	    Font customFont = new Font("Arial", Font.PLAIN, 12);
         // Create settings panel container
         settingsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        settingsPanel.setBounds(55, 20, 150, 230);  // Position the panel
+        settingsPanel.setBounds(55, 20, 150, 255);  // Position the panel
         settingsPanel.setBorder(BorderFactory.createTitledBorder(null, "Scene", TitledBorder.LEFT, TitledBorder.TOP, customFont, Color.white));  // Add a border with title
         settingsPanel.setBackground(new Color(123, 114, 100, 255));  // Semi-transparent background
         settingsPanel.setVisible(false);  // Hidden by default
         add(settingsPanel);
 
         // Set a custom font for all components in the settings panel
-        
+
 
         // Add UI components to the settings panel
         // Resolution settings
@@ -235,7 +300,7 @@ public class Scene extends JPanel implements KeyListener {
         settingsPanel.add(backgroundGField);
         backgroundBField = createTextField("0", e -> updateBackgroundColor(), customFont);
         settingsPanel.add(backgroundBField);
-          
+
         JLabel HDRLabel = new JLabel("HDR                         ");
 	    HDRLabel.setForeground(Color.white);
         HDRLabel.setFont(customFont);
@@ -253,6 +318,154 @@ public class Scene extends JPanel implements KeyListener {
 
         FOVField = createTextField("90", e -> updateFOV(), customFont);
         settingsPanel.add(FOVField);
+        // Fov settings
+        JLabel SampleLabel = new JLabel("Light Samples");
+        SampleLabel.setForeground(Color.white);
+        SampleLabel.setFont(customFont);
+        settingsPanel.add(SampleLabel);
+
+        sampleCountField = createTextField("4", e -> {sampleCount = Integer.parseInt(sampleCountField.getText());render();repaint();}, customFont);
+        settingsPanel.add(sampleCountField);
+
+
+
+       // --------------------------------------------------------------------------------------------------------------
+
+        setLayout(null);  // Use absolute positioning for overlay components
+        // Create edit panel container
+        editPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        editPanel.setBounds(width - 220, 20, 200, 300);  // Position the panel
+        editPanel.setBorder(BorderFactory.createTitledBorder(null, "Object", TitledBorder.LEFT, TitledBorder.TOP, customFont, Color.white));  // Add a border with title
+        editPanel.setBackground(new Color(123, 114, 100, 255));  // Semi-transparent background
+        editPanel.setVisible(false);  // Hidden by default
+        add(editPanel);
+
+        JLabel meshLabel = new JLabel("Mesh        ");
+        meshLabel.setForeground(Color.white);
+        meshLabel.setFont(customFont);
+        editPanel.add(meshLabel);
+
+        objectT = createTextField("sphere", e -> updateShape(), customFont);
+        objectT.setColumns(11);
+        editPanel.add(objectT);
+
+
+        JLabel originLabel = new JLabel("Location ");
+        originLabel.setForeground(Color.white);
+        originLabel.setFont(customFont);
+        editPanel.add(originLabel);
+
+        originX = createTextField("0", e -> updateShape(), customFont);
+        editPanel.add(originX);
+        originY = createTextField("0", e -> updateShape(), customFont);
+        editPanel.add(originY);
+        originZ = createTextField("0", e -> updateShape(), customFont);
+        editPanel.add(originZ);
+
+        JLabel scaleLabel = new JLabel("Scale      ");
+        scaleLabel.setForeground(Color.white);
+        scaleLabel.setFont(customFont);
+        editPanel.add(scaleLabel);
+
+        scaleX = createTextField("0", e -> updateShape(), customFont);
+        editPanel.add(scaleX);
+        scaleY = createTextField("0", e -> updateShape(), customFont);
+        editPanel.add(scaleY);
+        scaleZ = createTextField("0", e -> updateShape(), customFont);
+        editPanel.add(scaleZ);
+
+        JLabel RotationLabel = new JLabel("Rotation ");
+        RotationLabel.setForeground(Color.white);
+        RotationLabel.setFont(customFont);
+        editPanel.add(RotationLabel);
+
+        rotationX = createTextField("0", e -> updateShape(), customFont);
+        editPanel.add(rotationX);
+        rotationY = createTextField("0", e -> updateShape(), customFont);
+        editPanel.add(rotationY);
+        rotationZ = createTextField("0", e -> updateShape(), customFont);
+        editPanel.add(rotationZ);
+
+        JLabel colorLabel = new JLabel("Color      ");
+        colorLabel.setForeground(Color.white);
+        colorLabel.setFont(customFont);
+        editPanel.add(colorLabel);
+
+        colorR = createTextField("0", e -> updateShape(), customFont);
+        editPanel.add(colorR);
+        colorG = createTextField("0", e -> updateShape(), customFont);
+        editPanel.add(colorG);
+        colorB = createTextField("0", e -> updateShape(), customFont);
+        editPanel.add(colorB);
+
+        JLabel emissivityLabel = new JLabel("Emissivity                            ");
+        emissivityLabel.setForeground(Color.white);
+        emissivityLabel.setFont(customFont);
+        editPanel.add(emissivityLabel);
+
+        emissivity = createTextField("0", e -> updateShape(), customFont);
+        editPanel.add(emissivity);
+
+        JLabel metallicnessLabel = new JLabel("Metallicness                       ");
+        metallicnessLabel.setForeground(Color.white);
+        metallicnessLabel.setFont(customFont);
+        editPanel.add(metallicnessLabel);
+
+        metallicness = createTextField("0", e -> updateShape(), customFont);
+        editPanel.add(metallicness);
+
+        JLabel ReflectivenessLabel = new JLabel("Reflectiveness                   ");
+        ReflectivenessLabel.setForeground(Color.white);
+        ReflectivenessLabel.setFont(customFont);
+        editPanel.add(ReflectivenessLabel);
+
+        reflectiveness = createTextField("0", e -> updateShape(), customFont);
+        editPanel.add(reflectiveness);
+
+        JLabel SmoothnessLabel = new JLabel("Smoothness                      ");
+        SmoothnessLabel.setForeground(Color.white);
+        SmoothnessLabel.setFont(customFont);
+        editPanel.add(SmoothnessLabel);
+
+        smoothness = createTextField("0", e -> updateShape(), customFont);
+        editPanel.add(smoothness);
+
+        JLabel TransparencyLabel = new JLabel("Transparency                     ");
+        TransparencyLabel.setForeground(Color.white);
+        TransparencyLabel.setFont(customFont);
+        editPanel.add(TransparencyLabel);
+
+        transparency = createTextField("0", e -> updateShape(), customFont);
+        editPanel.add(transparency);
+
+        JLabel textureLabel = new JLabel("Texture    ");
+        textureLabel.setForeground(Color.white);
+        textureLabel.setFont(customFont);
+        editPanel.add(textureLabel);
+
+        texture = createTextField("", e -> updateShape(), customFont);
+        texture.setColumns(11);
+        editPanel.add(texture);
+
+    }
+
+    public void updateShape() {
+        shapes[selectedObject] = new Shape(objectT.getText(),
+                                  new Vector3(Double.parseDouble(originX.getText()), Double.parseDouble(originY.getText()), Double.parseDouble(originZ.getText())),
+                                  new Vector3(Double.parseDouble(scaleX.getText()), Double.parseDouble(scaleY.getText()), Double.parseDouble(scaleZ.getText())),
+                                  new Vector3(Double.parseDouble(rotationX.getText()), Double.parseDouble(rotationY.getText()), Double.parseDouble(rotationZ.getText())),
+                                  new ObjectProperties(
+                                          new Vector3(Double.parseDouble(colorR.getText()), Double.parseDouble(colorG.getText()), Double.parseDouble(colorB.getText())),
+                                          Double.parseDouble(emissivity.getText()),
+                                          Double.parseDouble(metallicness.getText()),
+                                          Double.parseDouble(reflectiveness.getText()),
+                                          Double.parseDouble(smoothness.getText()),
+                                          Double.parseDouble(transparency.getText()),
+                                          new Texture(texture.getText())
+                                  )
+        );
+        render();
+        repaint();
     }
 
     public JTextField createTextField(String text, ActionListener actionListener, Font font) {
@@ -349,6 +562,8 @@ public class Scene extends JPanel implements KeyListener {
         int panelWidth = getWidth();
         int panelHeight = getHeight();
 
+        editPanel.setBounds(panelWidth - 220, 20, 200, 300);  // Position the panel
+
         // Draw the image scaled to the current size of the panel
         g.drawImage(image, 0, 0, panelWidth, panelHeight, null);
 
@@ -389,7 +604,7 @@ public class Scene extends JPanel implements KeyListener {
         double rotateSpeed = 5.0; // Adjust the speed of camera rotation
 
         int keycode = e.getKeyCode();
-        if (keycode == KeyEvent.VK_W) camera.moveForward(moveSpeed);  // Move forward 
+        if (keycode == KeyEvent.VK_W) camera.moveForward(moveSpeed);  // Move forward
         if (keycode == KeyEvent.VK_S) camera.moveBackward(moveSpeed); // Move backward
         if (keycode == KeyEvent.VK_A) camera.moveLeft(moveSpeed); // Move left
         if (keycode == KeyEvent.VK_D) camera.moveRight(moveSpeed); // Move right
@@ -418,7 +633,7 @@ public class Scene extends JPanel implements KeyListener {
                     double u = (double) i / (width - 1);
                     double v = (double) (height - j - 1) / (height - 1);
                     Ray ray = camera.getRay(u, v);
-                    Vector3 color = renderer.traceRay(ray, spheres, lights, ambientLight, backgroundColor);
+                    Vector3 color = renderer.traceRay(ray, shapes, lights, ambientLight, backgroundColor, sampleCount, selectedObject);
 
                     int r = (int) (255.99 * color.x);
                     int g = (int) (255.99 * color.y);
@@ -434,7 +649,7 @@ public class Scene extends JPanel implements KeyListener {
                     double u = (double) i / (width - 1);
                     double v = (double) (height - j - 1) / (height - 1);
                     Ray ray = camera.getRay(u, v);
-                    Vector3 color = renderer.traceRayBasic(ray, spheres, lights, ambientLight, backgroundColor);
+                    Vector3 color = renderer.traceRayBasic(ray, shapes, lights, ambientLight, backgroundColor, selectedObject, u, v);
 
                     int r = (int) (255.99 * color.x);
                     int g = (int) (255.99 * color.y);
@@ -451,29 +666,31 @@ public class Scene extends JPanel implements KeyListener {
     }
 
     public static void main(String[] args) {
-        Sphere[] spheres = {
-                   new Sphere(new Vector3(0, -2, 3), 2, 
-                   new ObjectProperties(new Vector3(1, 0, 1), 0, .1, .3, .4, .3, new Texture("bricks.jpg"))),
-                   new Sphere(new Vector3(0, 2, 3), 1,
-                   new ObjectProperties( new Vector3(1, 0, 1), 100, .1, .2, .3, .1)),
-                   new Sphere(new Vector3(0, -504, 0), 500,
+        Shape[] shapes = {
+                   new Shape("sphere", new Vector3(0, -2, 3), new Vector3(2, 1, .2), new Vector3(30, 90,20),
+                   new ObjectProperties(new Vector3(1, 0, 1), 2, .1, .3, .4, .3, new Texture("bricks.jpg"))),
+                   new Shape("sphere", new Vector3(0, 2, 3), new Vector3(1, 1, 1), new Vector3(0, 0,0 ),
+                   new ObjectProperties( new Vector3(1, 0, 1), 0, .1, .2, .3, .1)),
+                   new Shape("cube", new Vector3(0,2,-3), new Vector3(1, 1, 1), new Vector3(0, 0, 0),
+                   new ObjectProperties( new Vector3(1, .5, .3), 0, 0, .3, 1, 0)),
+                   new Shape("sphere", new Vector3(0, -4, 0), new Vector3(500, 0.001, 500), new Vector3(0, 0,0),
                    new ObjectProperties(new Vector3(.5, .5, .5))),
         };
 
         Light[] lights = {
-            new Light(new Vector3(1, 5, 0), new Vector3(1, 1, 1), 1), // White light
+            new Light(new Vector3(1, 5, 0), new Vector3(1, 1, 1), 1, 0), // White light
 
         };
 
 
         Vector3 ambientLight = new Vector3(0.1, 0.1, 0.1); // Low-intensity ambient light
 
-        Scene scene = new Scene(640, 360, spheres, lights, ambientLight);
+        Scene scene = new Scene(640, 360, shapes, lights, ambientLight);
         scene.render();
 
         JFrame frame = new JFrame("GPTracer");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(scene.width, scene.height);
+        frame.setSize(656, 399);
         frame.add(scene);
 
         frame.setVisible(true);

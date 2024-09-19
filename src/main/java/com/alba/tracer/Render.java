@@ -23,67 +23,70 @@ public class Render {
         return hdrLoader.sample(u, v);
     }
 
-    public Vector3 computeLighting(Vector3 point, Vector3 normal, Vector3 viewDir, Sphere hitSphere, Light[] lights, Sphere[] spheres, Vector3 ambientLight, Vector3 backgroundColor, Ray ray) {
-        Vector3 baseColor = hitSphere.properties.color;  // Default to the base color
+    public Vector3 computeLighting(Vector3 point, Vector3 normal, Vector3 viewDir, Shape hitShape, Light[] lights, Shape[] shapes, Vector3 ambientLight, Vector3 backgroundColor, Ray ray, int sampleCount) {
+        Vector3 baseColor = hitShape.properties.color;
 
         // Check if the sphere has a texture and sample it if so
-        if (hitSphere.properties.texture != null && hitSphere.properties.texture.hasTexture()) {
-            Vector2 uv = sphereToUV(point, hitSphere.center);  // Convert hit point to UV coordinates
-            baseColor = hitSphere.properties.texture.sample(uv.x, uv.y);  // Sample texture color
+        if (hitShape.properties.texture != null && hitShape.properties.texture.hasTexture()) {
+            Vector2 uv = sphereToUV(point, hitShape.origin);
+            baseColor = hitShape.properties.texture.sample(uv.x, uv.y);
         }
 
         // Start with ambient lighting
         Vector3 color = baseColor.multiply(ambientLight);
 
-        // Iterate over all the lights in the scene and compute their effect
+        // Iterate over all the lights in the scene
         for (Light light : lights) {
-            Vector3 lightDir = light.position.subtract(point).normalize();
-            double nDotL = normal.dot(lightDir);
-            if (nDotL <= 0) continue;  // Skip if the surface is facing away from the light
+            Vector3 totalLightContribution = new Vector3(0, 0, 0); // Total light contribution for this light
 
-            // Shadow check
-            boolean inShadow = false;
-            Ray shadowRay = new Ray(point.add(normal.multiply(1e-5)), lightDir);
-            for (Sphere sphere : spheres) {
-                if (sphere != hitSphere && sphere.intersect(shadowRay) > 0) {
-                    inShadow = true;
-                    break;
+            // Handle lights with radius > 0 (area lights) for soft shadows
+            if (light.radius > 0) {
+                for (int i = 0; i < sampleCount; i++) {
+                    for (int j = 0; j < sampleCount; j++) {
+                        // Calculate sample position on the light's area (structured grid sampling)
+                        double u = (double) i / (sampleCount - 1);  // u in [0, 1]
+                        double v = (double) j / (sampleCount - 1);  // v in [0, 1]
+                        Vector3 offset = new Vector3(
+                                (u - 0.5) * 2 * light.radius,  // Offset x-coordinate
+                                0,                              // Keep y the same
+                                (v - 0.5) * 2 * light.radius    // Offset z-coordinate
+                        );
+                        Vector3 samplePosition = light.position.add(offset);  // Light sample position
+
+                        // Calculate light contribution for this sample position
+                        Vector3 lightDir = samplePosition.subtract(point).normalize();
+                        totalLightContribution = totalLightContribution.add(
+                                calculateLightContribution(point, normal, viewDir, baseColor, light, lightDir, shapes, hitShape)
+                        );
+                    }
                 }
+
+                // Average the total light contribution for all samples
+                totalLightContribution = totalLightContribution.multiply(1.0 / (sampleCount * sampleCount));
+            } else {
+                // Handle point lights (radius == 0) as before
+                Vector3 lightDir = light.position.subtract(point).normalize();
+                totalLightContribution = calculateLightContribution(point, normal, viewDir, baseColor, light, lightDir, shapes, hitShape);
             }
-            if (inShadow) continue;
 
-            // Diffuse component
-            double diffuseIntensity = nDotL * light.intensity;
-            Vector3 diffuse = baseColor.multiply(light.color).multiply(diffuseIntensity);
-
-            // Specular component
-            Vector3 reflectDir = lightDir.reflect(normal).normalize();
-            double smoothness = hitSphere.properties.smoothness;
-            double specularIntensity = Math.pow(Math.max(0.0, viewDir.dot(reflectDir)), 1 / (1 - smoothness)) * light.intensity;
-            Vector3 specular = new Vector3(1.0, 1.0, 1.0).multiply(light.color).multiply(specularIntensity);
-
-            // Blend diffuse and specular based on metallicness
-            Vector3 finalDiffuse = diffuse.multiply(1 - hitSphere.properties.metallicness);
-            Vector3 finalSpecular = specular.multiply(hitSphere.properties.metallicness);
-
-            // Add diffuse and specular to the color
-            color = color.add(finalDiffuse).add(finalSpecular);
+            // Add the final contribution from this light to the total color
+            color = color.add(totalLightContribution);
         }
 
-        // Handle emissive spheres acting as light sources
-        for (Sphere sphere : spheres) {
-            if (sphere.isEmissive() && sphere != hitSphere) {
-                Vector3 lightDir = sphere.center.subtract(point).normalize();
+        // Handle emissive objects
+        for (Shape shape : shapes) {
+            if (shape.isEmissive() && shape != hitShape) {
+                Vector3 lightDir = shape.origin.subtract(point).normalize();
                 double nDotL = normal.dot(lightDir);
                 if (nDotL <= 0) continue;
 
-                // Shadow check
+                // Shadow check for emissive spheres
                 boolean inShadow = false;
                 Ray shadowRay = new Ray(point.add(normal.multiply(1e-5)), lightDir);
-                for (Sphere otherSphere : spheres) {
-                    if (otherSphere != hitSphere && otherSphere != sphere) {
-                        double shadowT = otherSphere.intersect(shadowRay);
-                        if (shadowT > 0 && shadowT < sphere.center.subtract(point).length()) {
+                for (Shape otherShape : shapes) {
+                    if (otherShape != hitShape && otherShape != shape) {
+                        double shadowT = otherShape.intersect(shadowRay);
+                        if (shadowT > 0 && shadowT < shape.origin.subtract(point).length()) {
                             inShadow = true;
                             break;
                         }
@@ -91,40 +94,73 @@ public class Render {
                 }
                 if (inShadow) continue;
 
-                // Emissive color and intensity from texture or base color
-                Vector3 emissiveColor = sphere.properties.color;  // Default to base color
-                if (sphere.properties.texture != null && sphere.properties.texture.hasTexture()) {
-                    Vector2 uv = sphereToUV(point, sphere.center);  // Convert hit point to UV coordinates
-                    emissiveColor = sphere.properties.texture.sample(uv.x, uv.y);  // Sample texture color
+                // Emissive color and intensity
+                Vector3 emissiveColor = shape.properties.color;
+                if (shape.properties.texture != null && shape.properties.texture.hasTexture()) {
+                    Vector2 uv = sphereToUV(point, shape.origin);
+                    emissiveColor = shape.properties.texture.sample(uv.x, uv.y);
                 }
 
-                // Apply the emission intensity and add to final color
-                double distanceSquared = sphere.center.subtract(point).lengthSquared();
-                double intensity = sphere.properties.emission / distanceSquared;
+                double distanceSquared = shape.origin.subtract(point).lengthSquared();
+                double intensity = shape.properties.emission / distanceSquared;
                 Vector3 contribution = emissiveColor.multiply(intensity).multiply(nDotL);
 
-                color = color.add(contribution);  // Add emissive contribution
+                color = color.add(contribution);
             }
         }
 
-        // Reflection handling
-        if (hitSphere.properties.reflectiveness > 0) {
+        // Reflection handling (unchanged)
+        if (hitShape.properties.reflectiveness > 0) {
             Vector3 reflectDir = ray.direction.subtract(normal.multiply(2 * ray.direction.dot(normal))).normalize();
             Ray reflectRay = new Ray(point.add(normal.multiply(1e-5)), reflectDir);
-            Vector3 reflectColor = traceRay(reflectRay, spheres, lights, ambientLight, backgroundColor);
-            color = color.multiply(1 - hitSphere.properties.reflectiveness).add(reflectColor.multiply(hitSphere.properties.reflectiveness));
+            Vector3 reflectColor = traceRay(reflectRay, shapes, lights, ambientLight, backgroundColor, sampleCount, -1);
+            color = color.multiply(1 - hitShape.properties.reflectiveness).add(reflectColor.multiply(hitShape.properties.reflectiveness));
         }
 
-        // Refraction (transparency) handling
-        if (hitSphere.properties.transparency > 0) {
-            Vector3 refractDir = refract(ray.direction, normal, 1.0, 1.5);  // Assume index of refraction for air to glass (1.0 to 1.5)
-            Ray refractRay = new Ray(point.add(normal.multiply(-1e-5)), refractDir);  // Offset the point slightly to avoid self-intersection
-            Vector3 refractColor = traceRay(refractRay, spheres, lights, ambientLight, backgroundColor);
-            color = color.multiply(1 - hitSphere.properties.transparency).add(refractColor.multiply(hitSphere.properties.transparency));
+        // Refraction handling (unchanged)
+        if (hitShape.properties.transparency > 0) {
+            Vector3 refractDir = refract(ray.direction, normal, 1.0, 1.5);
+            Ray refractRay = new Ray(point.add(normal.multiply(-1e-5)), refractDir);
+            Vector3 refractColor = traceRay(refractRay, shapes, lights, ambientLight, backgroundColor, sampleCount, -1);
+            color = color.multiply(1 - hitShape.properties.transparency).add(refractColor.multiply(hitShape.properties.transparency));
         }
 
-        return color.clamp(0, 1); // Clamp to [0,1] range for color values
+        return color.clamp(0, 1);
     }
+
+    // Helper function to compute the contribution of a single light sample
+    private Vector3 calculateLightContribution(Vector3 point, Vector3 normal, Vector3 viewDir, Vector3 baseColor, Light light, Vector3 lightDir, Shape[] shapes, Shape hitShape) {
+        double nDotL = normal.dot(lightDir);
+        if (nDotL <= 0) return new Vector3(0, 0, 0);  // No contribution if the light is behind the surface
+
+        // Shadow check
+        boolean inShadow = false;
+        Ray shadowRay = new Ray(point.add(normal.multiply(1e-5)), lightDir);
+        for (Shape shape : shapes) {
+            if (shape != hitShape && shape.intersect(shadowRay) > 0) {
+                inShadow = true;
+                break;
+            }
+        }
+        if (inShadow) return new Vector3(0, 0, 0);  // No contribution if in shadow
+
+        // Diffuse component
+        double diffuseIntensity = nDotL * light.intensity;
+        Vector3 diffuse = baseColor.multiply(light.color).multiply(diffuseIntensity);
+
+        // Specular component
+        Vector3 reflectDir = lightDir.reflect(normal).normalize();
+        double smoothness = hitShape.properties.smoothness;
+        double specularIntensity = Math.pow(Math.max(0.0, viewDir.dot(reflectDir)), 1 / (1 - smoothness)) * light.intensity;
+        Vector3 specular = new Vector3(1.0, 1.0, 1.0).multiply(light.color).multiply(specularIntensity);
+
+        // Blend diffuse and specular based on metallicness
+        Vector3 finalDiffuse = diffuse.multiply(1 - hitShape.properties.metallicness);
+        Vector3 finalSpecular = specular.multiply(hitShape.properties.metallicness);
+
+        return finalDiffuse.add(finalSpecular);  // Return the combined diffuse and specular contribution
+    }
+
 
 
     // Helper function for Snell's Law to compute refraction
@@ -150,42 +186,57 @@ public class Render {
         return new Vector2(u, v);
     }
 
-    public Vector3 traceRay(Ray ray, Sphere[] spheres, Light[] light, Vector3 ambientLight, Vector3 backgroundColor) {
+    public Vector3 traceRay(Ray ray, Shape[] shapes, Light[] light, Vector3 ambientLight, Vector3 backgroundColor, int sampleCount, int selectedObject) {
         double closestT = Double.MAX_VALUE;
-        Sphere closestSphere = null;
-
+        Shape closestShape = null;
+        int i =0;
+        int clo = -1;
         // Find the closest sphere that the ray intersects
-        for (Sphere sphere : spheres) {
-            double t = sphere.intersect(ray);
+        for (Shape shape : shapes) {
+            double t = shape.intersect(ray);
             if (t > 0 && t < closestT) {
                 closestT = t;
-                closestSphere = sphere;
+                closestShape = shape;
+                clo = i;
             }
+            i++;
         }
 
-        if (closestSphere != null) {
+        if (closestShape != null) {
             Vector3 hitPoint = ray.pointAt(closestT);
-            Vector3 normal = closestSphere.getNormal(hitPoint);
+            Vector3 normal = closestShape.getNormal(hitPoint);
             Vector3 viewDir = ray.direction.multiply(-1).normalize(); // Direction from hit point to camera
 
             // If the closest sphere is emissive, return its emission color
-            if (closestSphere.isEmissive()) {
-                double emissionIntensity = closestSphere.properties.emission;
+            if (closestShape.isEmissive()) {
+                double emissionIntensity = closestShape.properties.emission;
 
                 // Check if the sphere has a texture and use the texture for emission if present
-                Vector3 emissionColor = closestSphere.properties.color;  // Default to base color
+                Vector3 emissionColor = closestShape.properties.color;  // Default to base color
 
-                if (closestSphere.properties.texture != null && closestSphere.properties.texture.hasTexture()) {
-                    Vector2 uv = sphereToUV(hitPoint, closestSphere.center);  // Convert hit point to UV coordinates
-                    emissionColor = closestSphere.properties.texture.sample(uv.x, uv.y);  // Sample texture color
+                if (closestShape.properties.texture != null && closestShape.properties.texture.hasTexture()) {
+                    Vector2 uv = sphereToUV(hitPoint, closestShape.origin);  // Convert hit point to UV coordinates
+                    emissionColor = closestShape.properties.texture.sample(uv.x, uv.y);  // Sample texture color
                 }
 
                 // Return the texture or base color multiplied by emission intensity
-                return emissionColor.multiply(emissionIntensity);
+                if (clo == selectedObject) {
+                    Vector3 originalColor = emissionColor.multiply(emissionIntensity).clamp(0, 1);
+                    Vector3 invertedColor = new Vector3(1 - originalColor.x, 1 - originalColor.y, 1 - originalColor.z);
+                    return invertedColor.multiply(1.5).clamp(0, 1);
+                } else {
+                    return emissionColor.multiply(emissionIntensity).clamp(0, 1);
+                }
             }
 
             // Compute lighting for non-emissive objects
-            return computeLighting(hitPoint, normal, viewDir, closestSphere, light, spheres, ambientLight, backgroundColor, ray);
+            if (clo == selectedObject) {
+                Vector3 originalColor = computeLighting(hitPoint, normal, viewDir, closestShape, light, shapes, ambientLight, backgroundColor, ray, sampleCount);
+                Vector3 invertedColor = new Vector3(1 - originalColor.x, 1 - originalColor.y, 1 - originalColor.z);
+                return invertedColor.multiply(1.5).clamp(0, 1);
+            } else {
+            return computeLighting(hitPoint, normal, viewDir, closestShape, light, shapes, ambientLight, backgroundColor, ray, sampleCount);
+            }
         }
 
         // Sample the HDR environment for rays that miss
@@ -196,22 +247,51 @@ public class Render {
         }
     }
 
-    public Vector3 traceRayBasic(Ray ray, Sphere[] spheres, Light[] light, Vector3 ambientLight, Vector3 backgroundColor) {
+    public Vector3 traceRayBasic(Ray ray, Shape[] shapes, Light[] light, Vector3 ambientLight, Vector3 backgroundColor, int selectedObject, double u, double v) {
         double closestT = Double.MAX_VALUE;
-        Sphere closestSphere = null;
-
-        for (Sphere sphere : spheres) {
-            double t = sphere.intersect(ray);
+        Shape closestShape = null;
+        int i = 0;
+        int clo = -1;
+        for (Shape shape : shapes) {
+            double t = shape.intersect(ray);
             if (t > 0 && t < closestT) {
                 closestT = t;
-                closestSphere = sphere;
+                closestShape = shape;
+                clo = i;
+            }
+            i++;
+        }
+
+        if (closestShape != null) {
+
+
+            if (clo == selectedObject) {
+                Vector3 originalColor = closestShape.properties.color;
+                Vector3 invertedColor = new Vector3(1 - originalColor.x, 1 - originalColor.y, 1 - originalColor.z);
+                return invertedColor.multiply(1.5).clamp(0, 1);
+            } else {
+                // Return the base color of the non-selected object
+                return closestShape.properties.color;
             }
         }
 
-        if (closestSphere != null) {
-            return closestSphere.properties.color;  // Return the sphere's color from ObjectProperties
-        }
 
         return backgroundColor; // Background color (sky blue)
+    }
+
+    public int traceFind(Ray ray, Shape[] shapes) {
+        double closestT = Double.MAX_VALUE;
+        int closestSphere = -1;
+        int i = 0;
+        for (Shape shape : shapes) {
+            double t = shape.intersect(ray);
+            if (t > 0 && t < closestT) {
+                closestT = t;
+                closestSphere = i;
+            }
+            i++;
+        }
+        System.out.println(closestSphere);
+        return closestSphere;
     }
 }
