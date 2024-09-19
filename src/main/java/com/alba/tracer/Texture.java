@@ -14,7 +14,7 @@ public class Texture {
     public Texture(String fileName) {
         this.filename = fileName;
         try {
-            this.image = ImageIO.read(new File("src/main/resources/Assets/" + fileName));
+            this.image = ImageIO.read(new File("src/main/resources/tracer/Assets/" + fileName));
             this.hasTexture = true; // Indicate that this texture has an image loaded
         } catch (IOException e) {
             System.err.println("Error loading texture file: " + fileName);
