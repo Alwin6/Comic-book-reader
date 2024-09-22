@@ -19,7 +19,6 @@ public class Scene extends JPanel implements KeyListener {
     private Vector3 ambientLight;
     private BufferedImage image;
     private boolean altPressed = false;
-    private Point lastMousePosition;
     private boolean rotating = false;
     private Robot robot;  // For centering the cursor
     private Point centerPoint;  // Center of the panel for cursor locking
@@ -43,7 +42,7 @@ public class Scene extends JPanel implements KeyListener {
     public JTextField backgroundGField;
     public JTextField backgroundBField;
     public JTextField FOVField;
-    public JTextField HDRfield;
+    public JTextField HDRField;
     public JTextField sampleCountField;
     public JPanel settingsPanel;  // Container for all settings
 
@@ -116,7 +115,7 @@ public class Scene extends JPanel implements KeyListener {
 
 
         // Initialize the UI components for settings
-        initUIComponents(width, height);
+        initUIComponents(width);
 
         // Mouse listener to handle mouse press and release events
         addMouseListener(new MouseAdapter() {
@@ -249,7 +248,7 @@ public class Scene extends JPanel implements KeyListener {
 
 
 
-    public void initUIComponents(int width, int height) {
+    public void initUIComponents(int width) {
         setLayout(null);  // Use absolute positioning for overlay components
 	    Font customFont = new Font("Arial", Font.PLAIN, 12);
         // Create settings panel container
@@ -306,9 +305,9 @@ public class Scene extends JPanel implements KeyListener {
         HDRLabel.setFont(customFont);
         settingsPanel.add(HDRLabel);
 
-        HDRfield = createTextField("", e -> loadHDR(), customFont);
-        HDRfield.setColumns(11);
-        settingsPanel.add(HDRfield);
+        HDRField = createTextField("", e -> loadHDR(), customFont);
+        HDRField.setColumns(11);
+        settingsPanel.add(HDRField);
 
         // Fov settings
         JLabel FOVLabel = new JLabel("FOV");
@@ -508,7 +507,7 @@ public class Scene extends JPanel implements KeyListener {
 
     public void loadHDR() {
         // Parse ambient light values
-        String r = HDRfield.getText();
+        String r = HDRField.getText();
         // Update ambient light
         try {
             hdrLoader = new HDRLoader("src/main/resources/tracer/Assets/"+r+".hdr");
@@ -537,12 +536,7 @@ public class Scene extends JPanel implements KeyListener {
         repaint();
     }
     public void updateFOV() {
-        // Parse background color values and set the background accordingly
-        double f = Double.parseDouble(FOVField.getText());
-        double aspectRatio = (double) width / height;
-        double fov = f;  // Field of view of 90 degrees
-
-        this.camera = new Camera(aspectRatio, fov, camera.getOrigin(), camera.getLookAt(), camera.getOrientation());
+        this.camera = new Camera((double) width / height, Double.parseDouble(FOVField.getText()), camera.getOrigin(), camera.getLookAt(), camera.getOrientation());
         render();
         repaint();
     }
@@ -572,6 +566,7 @@ public class Scene extends JPanel implements KeyListener {
             g.drawImage(imgR, 5, panelHeight - imgR.getHeight() - 5, this);
         }
         if (imgS != null) {
+            assert imgR != null;
             g.drawImage(imgS, imgR.getWidth() + 10, panelHeight - imgS.getHeight() - 5, this);
         }
 
@@ -601,7 +596,6 @@ public class Scene extends JPanel implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         double moveSpeed = 0.1;  // Adjust the speed of camera movement
-        double rotateSpeed = 5.0; // Adjust the speed of camera rotation
 
         int keycode = e.getKeyCode();
         if (keycode == KeyEvent.VK_W) camera.moveForward(moveSpeed);  // Move forward
