@@ -518,7 +518,7 @@ public class Scene extends JPanel implements KeyListener {
             renderer = new Render(hdrLoader);
 
         } catch (IOException e) {
-            System.out.println("HDR file not found or failed to load, using default background.");
+            System.err.println("HDR file not found or failed to load, using default background");
             // Initialize without HDRLoader
             useHDR = false;
             renderer = new Render(null);
