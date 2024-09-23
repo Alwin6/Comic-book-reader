@@ -34,7 +34,7 @@ public class Scene extends JPanel implements KeyListener {
 
     private BufferedImage imgR; // Image R
     private BufferedImage imgS; // Image S
-    
+
 
     // UI Components for Settings
     public JTextField resolutionWidthField;

@@ -29,46 +29,6 @@ public class ObjectProperties {
         this.texture = new Texture();
     }
 
-    public ObjectProperties(Vector3 color, double emission, double metallicness, double reflectiveness, double smoothness, Texture texture) {
-        this.color = color;
-        this.emission = emission;
-        this.metallicness = metallicness;
-        this.reflectiveness = reflectiveness;
-        this.smoothness = smoothness;
-        this.transparency = 0;
-        this.texture = texture;
-    }
-
-    public ObjectProperties(Vector3 color, double emission, double metallicness, double reflectiveness, double smoothness) {
-        this.color = color;
-        this.emission = emission;
-        this.metallicness = metallicness;
-        this.reflectiveness = reflectiveness;
-        this.smoothness = smoothness;
-        this.transparency = 0;
-        this.texture = new Texture();
-    }
-
-    public ObjectProperties(Vector3 color, double emission, double metallicness, double reflectiveness, Texture texture) {
-        this.color = color;
-        this.emission = emission;
-        this.metallicness = metallicness;
-        this.reflectiveness = reflectiveness;
-        this.smoothness = 0;
-        this.transparency = 0;
-        this.texture = texture;
-    }
-
-    public ObjectProperties(Vector3 color, double emission, double metallicness, double reflectiveness) {
-        this.color = color;
-        this.emission = emission;
-        this.metallicness = metallicness;
-        this.reflectiveness = reflectiveness;
-        this.smoothness = 0;
-        this.transparency = 0;
-        this.texture = new Texture();
-    }
-
     public ObjectProperties(Vector3 color) {
         this.color = color;
         this.emission = 0.0;
