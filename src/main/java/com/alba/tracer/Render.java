@@ -289,7 +289,8 @@ public class Render {
             }
             i++;
         }
-        System.out.println(closestSphere);
+
+        System.out.println(shapes.length);
         return closestSphere;
     }
 }

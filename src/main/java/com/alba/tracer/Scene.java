@@ -7,6 +7,8 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.io.IOException;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import javax.imageio.ImageIO;
 
 public class Scene extends JPanel implements KeyListener {
@@ -32,6 +34,8 @@ public class Scene extends JPanel implements KeyListener {
 
     private BufferedImage imgR; // Image R
     private BufferedImage imgS; // Image S
+    
+
     // UI Components for Settings
     public JTextField resolutionWidthField;
     public JTextField resolutionHeightField;
@@ -67,6 +71,10 @@ public class Scene extends JPanel implements KeyListener {
     public JTextField transparency;
     public JTextField texture;
     public JPanel editPanel;  // Container for all settings
+
+    public JTextField shapeName;
+    public JPanel addPanel;
+
 
     public Scene(int width, int height, Shape[] shapes, Light[] lights, Vector3 ambientLight) {
         this.width = width;
@@ -121,6 +129,7 @@ public class Scene extends JPanel implements KeyListener {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
+
                 if (altPressed) {
                     rotating = true;
                     centerPoint = e.getLocationOnScreen();  // Set centerPoint to the current cursor position
@@ -155,31 +164,13 @@ public class Scene extends JPanel implements KeyListener {
 
                             Ray ray = camera.getRay(u, v);
                             int previous = selectedObject;
-                            selectedObject = renderer.traceFind(ray, shapes);
+                            selectedObject = select(ray);
                             System.out.println(selectedObject);
                             if (previous == selectedObject) {editPanel.setVisible(false);selectedObject=-1;}
                             editPanel.setVisible(selectedObject != -1);
 
                             if (selectedObject != -1) {
-                                objectT.setText(shapes[selectedObject].objectType);
-                                originX.setText(String.valueOf(shapes[selectedObject].origin.x));
-                                originY.setText(String.valueOf(shapes[selectedObject].origin.y));
-                                originZ.setText(String.valueOf(shapes[selectedObject].origin.z));
-                                scaleZ.setText(String.valueOf(shapes[selectedObject].scale.z));
-                                scaleX.setText(String.valueOf(shapes[selectedObject].scale.x));
-                                scaleY.setText(String.valueOf(shapes[selectedObject].scale.y));
-                                rotationX.setText(String.valueOf(shapes[selectedObject].rotation.x));
-                                rotationY.setText(String.valueOf(shapes[selectedObject].rotation.y));
-                                rotationZ.setText(String.valueOf(shapes[selectedObject].rotation.z));
-                                colorR.setText(String.valueOf(shapes[selectedObject].properties.color.x));
-                                colorG.setText(String.valueOf(shapes[selectedObject].properties.color.y));
-                                colorB.setText(String.valueOf(shapes[selectedObject].properties.color.z));
-                                emissivity.setText(String.valueOf(shapes[selectedObject].properties.emission));
-                                metallicness.setText(String.valueOf(shapes[selectedObject].properties.metallicness));
-                                smoothness.setText(String.valueOf(shapes[selectedObject].properties.smoothness));
-                                reflectiveness.setText(String.valueOf(shapes[selectedObject].properties.reflectiveness));
-                                transparency.setText(String.valueOf(shapes[selectedObject].properties.transparency));
-                                texture.setText(shapes[selectedObject].properties.texture.filename);
+                                GetValuesOfSelectedObject();
                             }
 
                             render(); repaint();
@@ -246,7 +237,31 @@ public class Scene extends JPanel implements KeyListener {
         });
     }
 
+    public int select(Ray ray) {
+        return renderer.traceFind(ray, shapes);
+    }
 
+    public void GetValuesOfSelectedObject() {
+        objectT.setText(shapes[selectedObject].objectType);
+        originX.setText(String.valueOf(shapes[selectedObject].origin.x));
+        originY.setText(String.valueOf(shapes[selectedObject].origin.y));
+        originZ.setText(String.valueOf(shapes[selectedObject].origin.z));
+        scaleZ.setText(String.valueOf(shapes[selectedObject].scale.z));
+        scaleX.setText(String.valueOf(shapes[selectedObject].scale.x));
+        scaleY.setText(String.valueOf(shapes[selectedObject].scale.y));
+        rotationX.setText(String.valueOf(shapes[selectedObject].rotation.x));
+        rotationY.setText(String.valueOf(shapes[selectedObject].rotation.y));
+        rotationZ.setText(String.valueOf(shapes[selectedObject].rotation.z));
+        colorR.setText(String.valueOf(shapes[selectedObject].properties.color.x));
+        colorG.setText(String.valueOf(shapes[selectedObject].properties.color.y));
+        colorB.setText(String.valueOf(shapes[selectedObject].properties.color.z));
+        emissivity.setText(String.valueOf(shapes[selectedObject].properties.emission));
+        metallicness.setText(String.valueOf(shapes[selectedObject].properties.metallicness));
+        smoothness.setText(String.valueOf(shapes[selectedObject].properties.smoothness));
+        reflectiveness.setText(String.valueOf(shapes[selectedObject].properties.reflectiveness));
+        transparency.setText(String.valueOf(shapes[selectedObject].properties.transparency));
+        texture.setText(shapes[selectedObject].properties.texture.filename);
+    }
 
     public void initUIComponents(int width) {
         setLayout(null);  // Use absolute positioning for overlay components
@@ -446,6 +461,40 @@ public class Scene extends JPanel implements KeyListener {
         texture.setColumns(11);
         editPanel.add(texture);
 
+        // -----------------------------
+
+        setLayout(null);  // Use absolute positioning for overlay components
+        // Create edit panel container
+        addPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        addPanel.setBounds(0, 0, 150, 50);  // Position the panel
+        addPanel.setBorder(BorderFactory.createTitledBorder(null, "Add", TitledBorder.LEFT, TitledBorder.TOP, customFont, Color.white));  // Add a border with title
+        addPanel.setBackground(new Color(123, 114, 100, 255));  // Semi-transparent background
+        addPanel.setVisible(false);  // Hidden by default
+        add(addPanel);
+
+        shapeName = createTextField("", e -> {
+            if (!shapeName.getText().isEmpty()) {
+
+                Shape[] newShapes = Arrays.copyOf(shapes, shapes.length + 1);
+                newShapes[newShapes.length - 1] = new Shape(shapeName.getText(), new Vector3(0, 0, 0), new Vector3(1, 1, 1), new Vector3(0, 0, 0), new ObjectProperties(new Vector3(.5, .5, .5)));
+                shapes = newShapes;
+
+                selectedObject = shapes.length - 1;
+                GetValuesOfSelectedObject();
+                editPanel.setVisible(true);
+                render();
+                repaint();
+                addPanel.setVisible(false);
+
+            } else {
+                addPanel.setVisible(false);
+            }
+
+        }, customFont);
+        shapeName.setColumns(11);
+
+        addPanel.add(shapeName);
+
     }
 
     public void updateShape() {
@@ -600,7 +649,16 @@ public class Scene extends JPanel implements KeyListener {
         int keycode = e.getKeyCode();
         if (keycode == KeyEvent.VK_W) camera.moveForward(moveSpeed);  // Move forward
         if (keycode == KeyEvent.VK_S) camera.moveBackward(moveSpeed); // Move backward
-        if (keycode == KeyEvent.VK_A) camera.moveLeft(moveSpeed); // Move left
+        if (keycode == KeyEvent.VK_A) {
+            if (!altPressed) {
+                camera.moveLeft(moveSpeed);
+            } else {
+                Point f = MouseInfo.getPointerInfo().getLocation();
+                addPanel.setBounds( f.x + 10, f.y + 5, 150, 50);
+                addPanel.setVisible(true);
+                shapeName.setText("");
+            }
+        } // Move left
         if (keycode == KeyEvent.VK_D) camera.moveRight(moveSpeed); // Move right
         if (keycode == KeyEvent.VK_SPACE) camera.moveUp(moveSpeed); // Move up
         if (keycode == KeyEvent.VK_SHIFT) camera.moveDown(moveSpeed); // Move down

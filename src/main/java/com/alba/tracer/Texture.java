@@ -13,11 +13,16 @@ public class Texture {
     // Constructor for loading texture from a file
     public Texture(String fileName) {
         this.filename = fileName;
-        try {
-            this.image = ImageIO.read(new File("src/main/resources/tracer/Assets/" + fileName));
-            this.hasTexture = true; // Indicate that this texture has an image loaded
-        } catch (IOException e) {
-            System.err.println("Error loading texture file: " + fileName);
+        if (!fileName.isEmpty()) {
+            try {
+                this.image = ImageIO.read(new File("src/main/resources/tracer/Assets/" + fileName));
+                this.hasTexture = true; // Indicate that this texture has an image loaded
+            } catch (IOException e) {
+                System.err.println("Error loading texture file: " + fileName);
+                this.image = null;
+                this.hasTexture = false; // Failed to load, treat as no texture
+            }
+        } else {
             this.image = null;
             this.hasTexture = false; // Failed to load, treat as no texture
         }
