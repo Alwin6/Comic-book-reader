@@ -13,10 +13,6 @@ public class HDRLoader {
         loadHDR(filePath);
     }
 
-    public float[][][] getImageData() {
-        return imageData;
-    }
-
     public int getWidth() {
         return width;
     }
@@ -106,12 +102,11 @@ public class HDRLoader {
                             Arrays.fill(scanline, i * width + pos, i * width + pos + count, (byte) value);
                             pos += count;
                         } else { // Raw bytes
-                            int count = value;
-                            int readBytes = inputStream.read(scanline, i * width + pos, count);
-                            if (readBytes != count) {
+                            int readBytes = inputStream.read(scanline, i * width + pos, value);
+                            if (readBytes != value) {
                                 throw new IOException("Unexpected end of file while reading raw data.");
                             }
-                            pos += count;
+                            pos += value;
                         }
                     }
                 }
@@ -166,8 +161,6 @@ public class HDRLoader {
         float[] pixel = imageData[y][x];  // Access the HDR data
         return new Vector3(pixel[0], pixel[1], pixel[2]);  // Convert to Vector3
     }
-
-
 
     // For testing purposes
     public static void main(String[] args) {

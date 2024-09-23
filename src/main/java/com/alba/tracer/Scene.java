@@ -643,7 +643,7 @@ public class Scene extends JPanel implements KeyListener {
                     double u = (double) i / (width - 1);
                     double v = (double) (height - j - 1) / (height - 1);
                     Ray ray = camera.getRay(u, v);
-                    Vector3 color = renderer.traceRayBasic(ray, shapes, lights, ambientLight, backgroundColor, selectedObject, u, v);
+                    Vector3 color = renderer.traceRayBasic(ray, shapes, backgroundColor, selectedObject);
 
                     int r = (int) (255.99 * color.x);
                     int g = (int) (255.99 * color.y);

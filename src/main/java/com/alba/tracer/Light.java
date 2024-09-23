@@ -12,9 +12,4 @@ public class Light {
         this.intensity = intensity;
         this.radius = radius;  // Initialize the radius in the constructor
     }
-
-    // Default constructor for point light (with radius = 0)
-    public Light(Vector3 position, Vector3 color, double intensity) {
-        this(position, color, intensity, 0.0);  // Set default radius to 0 for point light behavior
-    }
 }

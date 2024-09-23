@@ -2,8 +2,6 @@ package com.alba.tracer;
 
 public class Render {
     private HDRLoader hdrLoader;
-    private float[][][] hdrData; // HDR image data
-    private boolean useHDR; // Flag to use HDR environment
 
     public Render(HDRLoader hdrLoader) {
         this.hdrLoader = hdrLoader;  // Initialize with HDRLoader instance
@@ -247,7 +245,7 @@ public class Render {
         }
     }
 
-    public Vector3 traceRayBasic(Ray ray, Shape[] shapes, Light[] light, Vector3 ambientLight, Vector3 backgroundColor, int selectedObject, double u, double v) {
+    public Vector3 traceRayBasic(Ray ray, Shape[] shapes, Vector3 backgroundColor, int selectedObject) {
         double closestT = Double.MAX_VALUE;
         Shape closestShape = null;
         int i = 0;
