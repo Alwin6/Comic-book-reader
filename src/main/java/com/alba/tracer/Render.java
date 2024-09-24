@@ -21,13 +21,18 @@ public class Render {
         return hdrLoader.sample(u, v);
     }
 
-    public Vector3 computeLighting(Vector3 point, Vector3 normal, Vector3 viewDir, Shape hitShape, Light[] lights, Shape[] shapes, Vector3 ambientLight, Vector3 backgroundColor, Ray ray, int sampleCount) {
+    public Vector3 computeLighting(Vector3 point, Vector3 normal, Vector3 viewDir, Shape hitShape, Light[] lights, Shape[] shapes, Vector3 ambientLight, Vector3 backgroundColor, Ray ray, int sampleCount, int reflections) {
         Vector3 baseColor = hitShape.properties.color;
 
         // Check if the sphere has a texture and sample it if so
         if (hitShape.properties.texture != null && hitShape.properties.texture.hasTexture()) {
-            Vector2 uv = sphereToUV(point, hitShape.origin);
-            baseColor = hitShape.properties.texture.sample(uv.x, uv.y);
+            if (hitShape.objectType.equals("sphere")) {
+                Vector2 uv = sphereToUV(point, hitShape.origin);
+                baseColor = hitShape.properties.texture.sample(uv.x, uv.y);
+            } else if (hitShape.objectType.equals("cube")) {
+                Vector2 uv = cubeToUV(point, hitShape.origin);
+                baseColor = hitShape.properties.texture.sample(uv.x, uv.y);
+            }
         }
 
         // Start with ambient lighting
@@ -95,8 +100,13 @@ public class Render {
                 // Emissive color and intensity
                 Vector3 emissiveColor = shape.properties.color;
                 if (shape.properties.texture != null && shape.properties.texture.hasTexture()) {
-                    Vector2 uv = sphereToUV(point, shape.origin);
-                    emissiveColor = shape.properties.texture.sample(uv.x, uv.y);
+                    if (shape.objectType.equals("sphere")) {
+                        Vector2 uv = sphereToUV(point, shape.origin);
+                        emissiveColor = shape.properties.texture.sample(uv.x, uv.y);
+                    } else if (shape.objectType.equals("cube")) {
+                        Vector2 uv = cubeToUV(point, shape.origin);
+                        emissiveColor = shape.properties.texture.sample(uv.x, uv.y);
+                    }
                 }
 
                 double distanceSquared = shape.origin.subtract(point).lengthSquared();
@@ -108,18 +118,18 @@ public class Render {
         }
 
         // Reflection handling (unchanged)
-        if (hitShape.properties.reflectiveness > 0) {
+        if (hitShape.properties.reflectiveness > 0 && reflections > 0) {
             Vector3 reflectDir = ray.direction.subtract(normal.multiply(2 * ray.direction.dot(normal))).normalize();
             Ray reflectRay = new Ray(point.add(normal.multiply(1e-5)), reflectDir);
-            Vector3 reflectColor = traceRay(reflectRay, shapes, lights, ambientLight, backgroundColor, sampleCount, -1);
+            Vector3 reflectColor = traceRay(reflectRay, shapes, lights, ambientLight, backgroundColor, sampleCount, -1, reflections-1);
             color = color.multiply(1 - hitShape.properties.reflectiveness).add(reflectColor.multiply(hitShape.properties.reflectiveness));
         }
 
         // Refraction handling (unchanged)
-        if (hitShape.properties.transparency > 0) {
+        if (hitShape.properties.transparency > 0 && reflections > 0) {
             Vector3 refractDir = refract(ray.direction, normal, 1.0, 1.5);
             Ray refractRay = new Ray(point.add(normal.multiply(-1e-5)), refractDir);
-            Vector3 refractColor = traceRay(refractRay, shapes, lights, ambientLight, backgroundColor, sampleCount, -1);
+            Vector3 refractColor = traceRay(refractRay, shapes, lights, ambientLight, backgroundColor, sampleCount, -1, reflections-1);
             color = color.multiply(1 - hitShape.properties.transparency).add(refractColor.multiply(hitShape.properties.transparency));
         }
 
@@ -159,8 +169,6 @@ public class Render {
         return finalDiffuse.add(finalSpecular);  // Return the combined diffuse and specular contribution
     }
 
-
-
     // Helper function for Snell's Law to compute refraction
     private Vector3 refract(Vector3 incident, Vector3 normal, double n1, double n2) {
         double ratio = n1 / n2;
@@ -184,7 +192,57 @@ public class Render {
         return new Vector2(u, v);
     }
 
-    public Vector3 traceRay(Ray ray, Shape[] shapes, Light[] light, Vector3 ambientLight, Vector3 backgroundColor, int sampleCount, int selectedObject) {
+    // Helper function to convert a point on a cube to UV coordinates
+    private Vector2 cubeToUV(Vector3 point, Vector3 center) {
+        Vector3 p = point.subtract(center);
+
+        double absX = Math.abs(p.x);
+        double absY = Math.abs(p.y);
+        double absZ = Math.abs(p.z);
+
+        double u = 0, v = 0;
+
+        // Determine the face of the cube (X, Y, or Z is dominant)
+        if (absX >= absY && absX >= absZ) {
+            // X face
+            if (p.x > 0) {
+                // Right face (positive X)
+                u = (p.z / absX + 1) / 2.0;
+                v = (p.y / absX + 1) / 2.0;
+            } else {
+                // Left face (negative X)
+                u = (-p.z / absX + 1) / 2.0;
+                v = (p.y / absX + 1) / 2.0;
+            }
+        } else if (absY >= absX && absY >= absZ) {
+            // Y face
+            if (p.y > 0) {
+                // Top face (positive Y)
+                u = (p.x / absY + 1) / 2.0;
+                v = (-p.z / absY + 1) / 2.0;
+            } else {
+                // Bottom face (negative Y)
+                u = (p.x / absY + 1) / 2.0;
+                v = (p.z / absY + 1) / 2.0;
+            }
+        } else {
+            // Z face
+            if (p.z > 0) {
+                // Front face (positive Z)
+                u = (p.x / absZ + 1) / 2.0;
+                v = (p.y / absZ + 1) / 2.0;
+            } else {
+                // Back face (negative Z)
+                u = (-p.x / absZ + 1) / 2.0;
+                v = (p.y / absZ + 1) / 2.0;
+            }
+        }
+
+        return new Vector2(u, v);
+    }
+
+
+    public Vector3 traceRay(Ray ray, Shape[] shapes, Light[] light, Vector3 ambientLight, Vector3 backgroundColor, int sampleCount, int selectedObject, int reflections) {
         double closestT = Double.MAX_VALUE;
         Shape closestShape = null;
         int i =0;
@@ -213,8 +271,13 @@ public class Render {
                 Vector3 emissionColor = closestShape.properties.color;  // Default to base color
 
                 if (closestShape.properties.texture != null && closestShape.properties.texture.hasTexture()) {
-                    Vector2 uv = sphereToUV(hitPoint, closestShape.origin);  // Convert hit point to UV coordinates
-                    emissionColor = closestShape.properties.texture.sample(uv.x, uv.y);  // Sample texture color
+                    if (closestShape.objectType.equals("sphere")) {
+                        Vector2 uv = sphereToUV(hitPoint, closestShape.origin);  // Convert hit point to UV coordinates
+                        emissionColor = closestShape.properties.texture.sample(uv.x, uv.y);  // Sample texture color
+                    } else if (closestShape.objectType.equals("cube")) {
+                        Vector2 uv = cubeToUV(hitPoint, closestShape.origin);  // Convert hit point to UV coordinates
+                        emissionColor = closestShape.properties.texture.sample(uv.x, uv.y);
+                    }
                 }
 
                 // Return the texture or base color multiplied by emission intensity
@@ -229,11 +292,11 @@ public class Render {
 
             // Compute lighting for non-emissive objects
             if (clo == selectedObject) {
-                Vector3 originalColor = computeLighting(hitPoint, normal, viewDir, closestShape, light, shapes, ambientLight, backgroundColor, ray, sampleCount);
+                Vector3 originalColor = computeLighting(hitPoint, normal, viewDir, closestShape, light, shapes, ambientLight, backgroundColor, ray, sampleCount, reflections);
                 Vector3 invertedColor = new Vector3(1 - originalColor.x, 1 - originalColor.y, 1 - originalColor.z);
                 return invertedColor.multiply(1.5).clamp(0, 1);
             } else {
-            return computeLighting(hitPoint, normal, viewDir, closestShape, light, shapes, ambientLight, backgroundColor, ray, sampleCount);
+            return computeLighting(hitPoint, normal, viewDir, closestShape, light, shapes, ambientLight, backgroundColor, ray, sampleCount, reflections);
             }
         }
 

@@ -31,9 +31,11 @@ public class Scene extends JPanel implements KeyListener {
     private int renderMethod = 0;
     private int sampleCount = 4;
     private int selectedObject = -1;
+    private int reflections = 150;
 
     private BufferedImage imgR; // Image R
     private BufferedImage imgS; // Image S
+    private BufferedImage imgE;
 
 
     // UI Components for Settings
@@ -48,6 +50,7 @@ public class Scene extends JPanel implements KeyListener {
     public JTextField FOVField;
     public JTextField HDRField;
     public JTextField sampleCountField;
+    public JTextField reflectionsField;
     public JPanel settingsPanel;  // Container for all settings
 
     // UI components for edit panel
@@ -101,6 +104,7 @@ public class Scene extends JPanel implements KeyListener {
         try {
             imgR = ImageIO.read(new File("src/main/resources/tracer/R.png"));
             imgS = ImageIO.read(new File("src/main/resources/tracer/S.png"));
+            imgE = ImageIO.read(new File("src/main/resources/tracer/E.png"));
         } catch (IOException e) {
             System.err.println("Failed to load images.");
             e.printStackTrace();
@@ -144,6 +148,7 @@ public class Scene extends JPanel implements KeyListener {
                         // Check if click is within the bounds of imgR or imgS
                         Rectangle rBounds = new Rectangle(5, getHeight() - imgR.getHeight() - 5, imgR.getWidth(), imgR.getHeight());
                         Rectangle sBounds = new Rectangle(imgR.getWidth() + 10, getHeight() - imgS.getHeight() - 5, imgS.getWidth(), imgS.getHeight());
+                        Rectangle eBounds = new Rectangle(imgR.getWidth() * 2 + 15, getHeight() - imgE.getHeight() - 5, imgE.getWidth(), imgE.getHeight());
 
                         if (rBounds.contains(e.getPoint())) {
                             renderMethod = 0;
@@ -268,7 +273,7 @@ public class Scene extends JPanel implements KeyListener {
 	    Font customFont = new Font("Arial", Font.PLAIN, 12);
         // Create settings panel container
         settingsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        settingsPanel.setBounds(55, 20, 150, 255);  // Position the panel
+        settingsPanel.setBounds(55, 20, 150, 275);  // Position the panel
         settingsPanel.setBorder(BorderFactory.createTitledBorder(null, "Scene", TitledBorder.LEFT, TitledBorder.TOP, customFont, Color.white));  // Add a border with title
         settingsPanel.setBackground(new Color(123, 114, 100, 255));  // Semi-transparent background
         settingsPanel.setVisible(false);  // Hidden by default
@@ -340,6 +345,14 @@ public class Scene extends JPanel implements KeyListener {
 
         sampleCountField = createTextField("4", e -> {sampleCount = Integer.parseInt(sampleCountField.getText());render();repaint();}, customFont);
         settingsPanel.add(sampleCountField);
+        // Fov settings definitely right?
+        JLabel reflectionsLabel = new JLabel("Ray Depth");
+        reflectionsLabel.setForeground(Color.white);
+        reflectionsLabel.setFont(customFont);
+        settingsPanel.add(reflectionsLabel);
+
+        reflectionsField = createTextField("150", e -> {reflections = Integer.parseInt(reflectionsField.getText());render();repaint();}, customFont);
+        settingsPanel.add(reflectionsField);
 
 
 
@@ -618,6 +631,11 @@ public class Scene extends JPanel implements KeyListener {
             assert imgR != null;
             g.drawImage(imgS, imgR.getWidth() + 10, panelHeight - imgS.getHeight() - 5, this);
         }
+        if (imgE != null) {
+            assert imgR != null;
+            assert imgS != null;
+            g.drawImage(imgE, imgR.getWidth() * 2 + 15, panelHeight - imgE.getHeight() - 5, this);
+        }
 
         // Draw camera orientation
         drawOrientation(g);
@@ -685,7 +703,7 @@ public class Scene extends JPanel implements KeyListener {
                     double u = (double) i / (width - 1);
                     double v = (double) (height - j - 1) / (height - 1);
                     Ray ray = camera.getRay(u, v);
-                    Vector3 color = renderer.traceRay(ray, shapes, lights, ambientLight, backgroundColor, sampleCount, selectedObject);
+                    Vector3 color = renderer.traceRay(ray, shapes, lights, ambientLight, backgroundColor, sampleCount, selectedObject, reflections);
 
                     int r = (int) (255.99 * color.x);
                     int g = (int) (255.99 * color.y);
