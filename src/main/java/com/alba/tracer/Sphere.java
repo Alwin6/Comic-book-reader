@@ -58,4 +58,12 @@ public class Sphere {
         return localPoint.normalize();  // Normal in object space
     }
 
+    // Helper function to convert a point on a sphere to UV coordinates
+    public Vector2 sphereToUV(Vector3 point, Vector3 center) {
+        Vector3 p = point.subtract(center).normalize();
+        double u = 0.5 + (Math.atan2(p.z, p.x) / (2 * Math.PI));
+        double v = 0.5 - (Math.asin(p.y) / Math.PI);
+        return new Vector2(u, v);
+    }
+
 }

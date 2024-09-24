@@ -26,13 +26,8 @@ public class Render {
 
         // Check if the sphere has a texture and sample it if so
         if (hitShape.properties.texture != null && hitShape.properties.texture.hasTexture()) {
-            if (hitShape.objectType.equals("sphere")) {
-                Vector2 uv = sphereToUV(point, hitShape.origin);
-                baseColor = hitShape.properties.texture.sample(uv.x, uv.y);
-            } else if (hitShape.objectType.equals("cube")) {
-                Vector2 uv = cubeToUV(point, hitShape.origin);
-                baseColor = hitShape.properties.texture.sample(uv.x, uv.y);
-            }
+            Vector2 uv = hitShape.toUV(point, hitShape.origin);
+            baseColor = hitShape.properties.texture.sample(uv.x, uv.y);
         }
 
         // Start with ambient lighting
@@ -100,13 +95,8 @@ public class Render {
                 // Emissive color and intensity
                 Vector3 emissiveColor = shape.properties.color;
                 if (shape.properties.texture != null && shape.properties.texture.hasTexture()) {
-                    if (shape.objectType.equals("sphere")) {
-                        Vector2 uv = sphereToUV(point, shape.origin);
-                        emissiveColor = shape.properties.texture.sample(uv.x, uv.y);
-                    } else if (shape.objectType.equals("cube")) {
-                        Vector2 uv = cubeToUV(point, shape.origin);
-                        emissiveColor = shape.properties.texture.sample(uv.x, uv.y);
-                    }
+                    Vector2 uv = shape.toUV(point, shape.origin);
+                    emissiveColor = shape.properties.texture.sample(uv.x, uv.y);
                 }
 
                 double distanceSquared = shape.origin.subtract(point).lengthSquared();
@@ -184,64 +174,6 @@ public class Render {
         return incident.multiply(ratio).add(normal.multiply(ratio * cosI - cosT));
     }
 
-    // Helper function to convert a point on a sphere to UV coordinates
-    private Vector2 sphereToUV(Vector3 point, Vector3 center) {
-        Vector3 p = point.subtract(center).normalize();
-        double u = 0.5 + (Math.atan2(p.z, p.x) / (2 * Math.PI));
-        double v = 0.5 - (Math.asin(p.y) / Math.PI);
-        return new Vector2(u, v);
-    }
-
-    // Helper function to convert a point on a cube to UV coordinates
-    private Vector2 cubeToUV(Vector3 point, Vector3 center) {
-        Vector3 p = point.subtract(center);
-
-        double absX = Math.abs(p.x);
-        double absY = Math.abs(p.y);
-        double absZ = Math.abs(p.z);
-
-        double u = 0, v = 0;
-
-        // Determine the face of the cube (X, Y, or Z is dominant)
-        if (absX >= absY && absX >= absZ) {
-            // X face
-            if (p.x > 0) {
-                // Right face (positive X)
-                u = (p.z / absX + 1) / 2.0;
-                v = (p.y / absX + 1) / 2.0;
-            } else {
-                // Left face (negative X)
-                u = (-p.z / absX + 1) / 2.0;
-                v = (p.y / absX + 1) / 2.0;
-            }
-        } else if (absY >= absX && absY >= absZ) {
-            // Y face
-            if (p.y > 0) {
-                // Top face (positive Y)
-                u = (p.x / absY + 1) / 2.0;
-                v = (-p.z / absY + 1) / 2.0;
-            } else {
-                // Bottom face (negative Y)
-                u = (p.x / absY + 1) / 2.0;
-                v = (p.z / absY + 1) / 2.0;
-            }
-        } else {
-            // Z face
-            if (p.z > 0) {
-                // Front face (positive Z)
-                u = (p.x / absZ + 1) / 2.0;
-                v = (p.y / absZ + 1) / 2.0;
-            } else {
-                // Back face (negative Z)
-                u = (-p.x / absZ + 1) / 2.0;
-                v = (p.y / absZ + 1) / 2.0;
-            }
-        }
-
-        return new Vector2(u, v);
-    }
-
-
     public Vector3 traceRay(Ray ray, Shape[] shapes, Light[] light, Vector3 ambientLight, Vector3 backgroundColor, int sampleCount, int selectedObject, int reflections) {
         double closestT = Double.MAX_VALUE;
         Shape closestShape = null;
@@ -271,13 +203,8 @@ public class Render {
                 Vector3 emissionColor = closestShape.properties.color;  // Default to base color
 
                 if (closestShape.properties.texture != null && closestShape.properties.texture.hasTexture()) {
-                    if (closestShape.objectType.equals("sphere")) {
-                        Vector2 uv = sphereToUV(hitPoint, closestShape.origin);  // Convert hit point to UV coordinates
-                        emissionColor = closestShape.properties.texture.sample(uv.x, uv.y);  // Sample texture color
-                    } else if (closestShape.objectType.equals("cube")) {
-                        Vector2 uv = cubeToUV(hitPoint, closestShape.origin);  // Convert hit point to UV coordinates
-                        emissionColor = closestShape.properties.texture.sample(uv.x, uv.y);
-                    }
+                    Vector2 uv = closestShape.toUV(hitPoint, closestShape.origin);  // Convert hit point to UV coordinates
+                    emissionColor = closestShape.properties.texture.sample(uv.x, uv.y);  // Sample texture color
                 }
 
                 // Return the texture or base color multiplied by emission intensity

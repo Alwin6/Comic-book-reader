@@ -55,6 +55,19 @@ public class Shape {
         return null; // No normal if the object type isn't handled
     }
 
+    public Vector2 toUV(Vector3 point, Vector3 center) {
+        if (objectType.equalsIgnoreCase("sphere")) {
+            if (isUniformScale()) {
+                return sphere.sphereToUV(point, center);
+            } else {
+                return sphere.sphereToUV(point, center);
+            }
+        } else if (objectType.equalsIgnoreCase("cube")) {
+            return cube.cubeToUV(point, center);
+        }
+        return null;
+    }
+
     // Check if the object has uniform scaling (i.e., a sphere)
     public boolean isUniformScale() {
         return scale.x == scale.y && scale.y == scale.z;

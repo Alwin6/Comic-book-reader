@@ -90,4 +90,53 @@ public class Cube {
             return new Vector3(0, 0, Math.signum(localPoint.z));
         }
     }
+
+    // Helper function to convert a point on a cube to UV coordinates
+    public Vector2 cubeToUV(Vector3 point, Vector3 center) {
+        Vector3 p = point.subtract(center);
+
+        double absX = Math.abs(p.x);
+        double absY = Math.abs(p.y);
+        double absZ = Math.abs(p.z);
+
+        double u = 0, v = 0;
+
+        // Determine the face of the cube (X, Y, or Z is dominant)
+        if (absX >= absY && absX >= absZ) {
+            // X face
+            if (p.x > 0) {
+                // Right face (positive X)
+                u = (p.z / absX + 1) / 2.0;
+                v = (p.y / absX + 1) / 2.0;
+            } else {
+                // Left face (negative X)
+                u = (-p.z / absX + 1) / 2.0;
+                v = (p.y / absX + 1) / 2.0;
+            }
+        } else if (absY >= absX && absY >= absZ) {
+            // Y face
+            if (p.y > 0) {
+                // Top face (positive Y)
+                u = (p.x / absY + 1) / 2.0;
+                v = (-p.z / absY + 1) / 2.0;
+            } else {
+                // Bottom face (negative Y)
+                u = (p.x / absY + 1) / 2.0;
+                v = (p.z / absY + 1) / 2.0;
+            }
+        } else {
+            // Z face
+            if (p.z > 0) {
+                // Front face (positive Z)
+                u = (p.x / absZ + 1) / 2.0;
+                v = (p.y / absZ + 1) / 2.0;
+            } else {
+                // Back face (negative Z)
+                u = (-p.x / absZ + 1) / 2.0;
+                v = (p.y / absZ + 1) / 2.0;
+            }
+        }
+
+        return new Vector2(u, v);
+    }
 }

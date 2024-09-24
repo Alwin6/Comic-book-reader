@@ -7,13 +7,11 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.io.IOException;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import javax.imageio.ImageIO;
 
 public class Scene extends JPanel implements KeyListener {
-    private int width;
-    private int height;
+    private int width, height;
     private Vector3 backgroundColor;
     private Camera camera;
     private Shape[] shapes;
@@ -33,46 +31,21 @@ public class Scene extends JPanel implements KeyListener {
     private int selectedObject = -1;
     private int reflections = 150;
 
-    private BufferedImage imgR; // Image R
-    private BufferedImage imgS; // Image S
-    private BufferedImage imgE;
-
+    private BufferedImage imgR, imgS, imgE; // Image R
 
     // UI Components for Settings
-    public JTextField resolutionWidthField;
-    public JTextField resolutionHeightField;
-    public JTextField ambientRField;
-    public JTextField ambientGField;
-    public JTextField ambientBField;
-    public JTextField backgroundRField;
-    public JTextField backgroundGField;
-    public JTextField backgroundBField;
-    public JTextField FOVField;
-    public JTextField HDRField;
-    public JTextField sampleCountField;
-    public JTextField reflectionsField;
+    public JTextField resolutionWidthField, resolutionHeightField;
+    public JTextField ambientRField, ambientGField, ambientBField;
+    public JTextField backgroundRField, backgroundGField, backgroundBField;
+    public JTextField FOVField, HDRField, sampleCountField, reflectionsField;
     public JPanel settingsPanel;  // Container for all settings
 
     // UI components for edit panel
-    public JTextField objectT;
-    public JTextField originX;
-    public JTextField originY;
-    public JTextField originZ;
-    public JTextField scaleX;
-    public JTextField scaleY;
-    public JTextField scaleZ;
-    public JTextField rotationX;
-    public JTextField rotationY;
-    public JTextField rotationZ;
-    public JTextField colorR;
-    public JTextField colorG;
-    public JTextField colorB;
-    public JTextField emissivity;
-    public JTextField metallicness;
-    public JTextField reflectiveness;
-    public JTextField smoothness;
-    public JTextField transparency;
-    public JTextField texture;
+    public JTextField objectT, originX, originY, originZ;
+    public JTextField scaleX, scaleY, scaleZ;
+    public JTextField rotationX, rotationY, rotationZ;
+    public JTextField colorR, colorG, colorB;
+    public JTextField emissivity, metallicness, reflectiveness, smoothness, transparency, texture;
     public JPanel editPanel;  // Container for all settings
 
     public JTextField shapeName;
@@ -279,9 +252,6 @@ public class Scene extends JPanel implements KeyListener {
         settingsPanel.setVisible(false);  // Hidden by default
         add(settingsPanel);
 
-        // Set a custom font for all components in the settings panel
-
-
         // Add UI components to the settings panel
         // Resolution settings
         JLabel resolutionLabel = new JLabel("Resolution            ");
@@ -353,8 +323,6 @@ public class Scene extends JPanel implements KeyListener {
 
         reflectionsField = createTextField("150", e -> {reflections = Integer.parseInt(reflectionsField.getText());render();repaint();}, customFont);
         settingsPanel.add(reflectionsField);
-
-
 
        // --------------------------------------------------------------------------------------------------------------
 
