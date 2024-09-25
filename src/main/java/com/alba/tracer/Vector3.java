@@ -66,5 +66,13 @@ public class Vector3 {
                 Math.min(max, Math.max(min, this.z))
         );
     }
+
+    public Vector3 withNonZero() {
+        return new Vector3(
+                (x == 0) ? 1e-6 : x,
+                (y == 0) ? 1e-6 : y,
+                (z == 0) ? 1e-6 : z
+        );
+    }
 }
 
