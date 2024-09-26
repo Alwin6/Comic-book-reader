@@ -8,8 +8,10 @@ public class HDRLoader {
     private float[][][] imageData; // 3D array to store RGB values
     private int width;
     private int height;
+    public String filename;
 
     public HDRLoader(String filePath) throws IOException {
+        this.filename = filePath;
         loadHDR(filePath);
     }
 

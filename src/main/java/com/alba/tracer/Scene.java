@@ -38,6 +38,7 @@ public class Scene extends JPanel implements KeyListener {
     public JTextField ambientRField, ambientGField, ambientBField;
     public JTextField backgroundRField, backgroundGField, backgroundBField;
     public JTextField FOVField, HDRField, sampleCountField, reflectionsField;
+    public JTextField exportSceneField, importSceneField;
     public JPanel settingsPanel;  // Container for all settings
 
     // UI components for edit panel
@@ -98,10 +99,8 @@ public class Scene extends JPanel implements KeyListener {
         }
 
 
-
         // Initialize the UI components for settings
         initUIComponents(width);
-
         // Mouse listener to handle mouse press and release events
         addMouseListener(new MouseAdapter() {
             @Override
@@ -246,7 +245,7 @@ public class Scene extends JPanel implements KeyListener {
 	    Font customFont = new Font("Arial", Font.PLAIN, 12);
         // Create settings panel container
         settingsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        settingsPanel.setBounds(55, 20, 150, 275);  // Position the panel
+        settingsPanel.setBounds(55, 20, 250, 245);  // Position the panel
         settingsPanel.setBorder(BorderFactory.createTitledBorder(null, "Scene", TitledBorder.LEFT, TitledBorder.TOP, customFont, Color.white));  // Add a border with title
         settingsPanel.setBackground(new Color(123, 114, 100, 255));  // Semi-transparent background
         settingsPanel.setVisible(false);  // Hidden by default
@@ -254,7 +253,7 @@ public class Scene extends JPanel implements KeyListener {
 
         // Add UI components to the settings panel
         // Resolution settings
-        JLabel resolutionLabel = new JLabel("Resolution            ");
+        JLabel resolutionLabel = new JLabel("Resolution                            ");
 	    resolutionLabel.setForeground(Color.white);
         resolutionLabel.setFont(customFont);
         settingsPanel.add(resolutionLabel);
@@ -265,7 +264,7 @@ public class Scene extends JPanel implements KeyListener {
         settingsPanel.add(resolutionHeightField);
 
         // Ambient light settings
-        JLabel ambientLabel = new JLabel("Ambient Light      ");
+        JLabel ambientLabel = new JLabel("Ambient Light        ");
 	    ambientLabel.setForeground(Color.white);
         ambientLabel.setFont(customFont);
         settingsPanel.add(ambientLabel);
@@ -290,7 +289,7 @@ public class Scene extends JPanel implements KeyListener {
         backgroundBField = createTextField("0", e -> updateBackgroundColor(), customFont);
         settingsPanel.add(backgroundBField);
 
-        JLabel HDRLabel = new JLabel("HDR                         ");
+        JLabel HDRLabel = new JLabel("HDR                          ");
 	    HDRLabel.setForeground(Color.white);
         HDRLabel.setFont(customFont);
         settingsPanel.add(HDRLabel);
@@ -300,7 +299,7 @@ public class Scene extends JPanel implements KeyListener {
         settingsPanel.add(HDRField);
 
         // Fov settings
-        JLabel FOVLabel = new JLabel("FOV");
+        JLabel FOVLabel = new JLabel("FOV                                                       ");
 	    FOVLabel.setForeground(Color.white);
         FOVLabel.setFont(customFont);
         settingsPanel.add(FOVLabel);
@@ -308,7 +307,7 @@ public class Scene extends JPanel implements KeyListener {
         FOVField = createTextField("90", e -> updateFOV(), customFont);
         settingsPanel.add(FOVField);
         // Fov settings
-        JLabel SampleLabel = new JLabel("Light Samples");
+        JLabel SampleLabel = new JLabel("Light Samples                                    ");
         SampleLabel.setForeground(Color.white);
         SampleLabel.setFont(customFont);
         settingsPanel.add(SampleLabel);
@@ -316,7 +315,7 @@ public class Scene extends JPanel implements KeyListener {
         sampleCountField = createTextField("4", e -> {sampleCount = Integer.parseInt(sampleCountField.getText());render();repaint();}, customFont);
         settingsPanel.add(sampleCountField);
         // Fov settings definitely right?
-        JLabel reflectionsLabel = new JLabel("Ray Depth");
+        JLabel reflectionsLabel = new JLabel("Ray Depth                                            ");
         reflectionsLabel.setForeground(Color.white);
         reflectionsLabel.setFont(customFont);
         settingsPanel.add(reflectionsLabel);
@@ -324,7 +323,71 @@ public class Scene extends JPanel implements KeyListener {
         reflectionsField = createTextField("150", e -> {reflections = Integer.parseInt(reflectionsField.getText());render();repaint();}, customFont);
         settingsPanel.add(reflectionsField);
 
-       // --------------------------------------------------------------------------------------------------------------
+        JLabel saveField = new JLabel("Export Scene           ");
+        saveField.setForeground(Color.white);
+        saveField.setFont(customFont);
+        settingsPanel.add(saveField);
+
+        exportSceneField = createTextField("", e -> {
+            SceneManager export = new SceneManager(shapes, lights, backgroundColor, ambientLight, hdrLoader, sampleCount, reflections);
+            try {
+                SceneManager.Export(exportSceneField.getText(), export);
+            } catch (IOException ex) {
+                System.err.println("fuck");
+            }
+        }, customFont);
+        exportSceneField.setColumns(11);
+        settingsPanel.add(exportSceneField);
+
+        JLabel loadField = new JLabel("Import Scene          ");
+        loadField.setForeground(Color.white);
+        loadField.setFont(customFont);
+        settingsPanel.add(loadField);
+
+        importSceneField = createTextField("", e -> {
+            SceneManager imp = new SceneManager(shapes, lights, backgroundColor, ambientLight, hdrLoader, sampleCount, reflections);
+
+            try {
+                imp.Import(importSceneField.getText());
+                ambientLight = imp.ambientLight;
+                hdrLoader = imp.hdrLoader;
+                if (hdrLoader != null) {
+                    renderer = new Render(hdrLoader);
+                } else {
+                    renderer = new Render(null);
+                }
+                sampleCount = imp.sampleCount;
+                reflections = imp.reflections;
+                shapes = imp.shapes;
+                lights = imp.lights;
+                backgroundColor = imp.backgroundColor;
+                ambientRField.setText(String.valueOf(ambientLight.x));
+                ambientGField.setText(String.valueOf(ambientLight.y));
+                ambientBField.setText(String.valueOf(ambientLight.z));
+                backgroundRField.setText(String.valueOf(backgroundColor.x));
+                backgroundGField.setText(String.valueOf(backgroundColor.y));
+                backgroundBField.setText(String.valueOf(backgroundColor.z));
+                if (hdrLoader != null) {
+                    HDRField.setText(hdrLoader.filename);
+                } else {
+                    HDRField.setText("");
+                }
+                sampleCountField.setText(String.valueOf(sampleCount));
+                reflectionsField.setText(String.valueOf(reflections));
+
+                render();
+                repaint();
+            } catch (IOException ex) {
+                System.err.println("fuck");
+            }
+
+
+        }, customFont);
+        importSceneField.setColumns(11);
+        settingsPanel.add(importSceneField);
+
+
+        // --------------------------------------------------------------------------------------------------------------
 
         setLayout(null);  // Use absolute positioning for overlay components
         // Create edit panel container
@@ -717,7 +780,6 @@ public class Scene extends JPanel implements KeyListener {
 
         Light[] lights = {
             new Light(new Vector3(1, 5, 0), new Vector3(1, 1, 1), 1, 0), // White light
-
         };
 
 
