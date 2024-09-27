@@ -47,9 +47,9 @@ public class ComicBookZip {
         List<BufferedImage> images = new ArrayList<>();
         try (ZipFile zip = new ZipFile(file)) {
             Enumeration<? extends ZipEntry> entries = zip.entries();
+            int fileSize = FileTools.getFileSizeMB(file);
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
-                int fileSize = FileTools.getFileSizeMB(file);
 
                 // Only process image files
                 if (!entry.isDirectory() && entry.getName().matches(".*\\.(jpg|jpeg|png|gif)$")) {
