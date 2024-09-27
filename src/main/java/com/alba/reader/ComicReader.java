@@ -5,7 +5,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 
-public class ComicReaderGUI extends JFrame {
+public class ComicReader extends JFrame {
     private ComicBook comicBook;
     private JLabel imageLabel;
     private JScrollPane scrollPane;
@@ -13,7 +13,7 @@ public class ComicReaderGUI extends JFrame {
     private int currentPageIndex = 0;
     private float zoomFactor = 1.0f;
 
-    public ComicReaderGUI() {
+    public ComicReader() {
         setTitle("Comic Reader");
         setExtendedState(Frame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -239,6 +239,6 @@ public class ComicReaderGUI extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(ComicReaderGUI::new);
+        SwingUtilities.invokeLater(ComicReader::new);
     }
 }
