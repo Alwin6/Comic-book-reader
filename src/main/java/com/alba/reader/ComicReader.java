@@ -10,8 +10,10 @@ public class ComicReader extends JFrame {
     private JLabel imageLabel;
     private JScrollPane scrollPane;
     private JProgressBar progressBar;
+    private JPanel buttonPanel = new JPanel();
     private int currentPageIndex = 0;
     private float zoomFactor = 1.0f;
+    private boolean isDarkMode = false;
 
     public ComicReader() {
         setTitle("Comic Reader");
@@ -30,7 +32,6 @@ public class ComicReader extends JFrame {
         progressBar = new JProgressBar();
         add(progressBar, BorderLayout.NORTH);
 
-        JPanel buttonPanel = new JPanel();
         JButton prevButton = new JButton("Previous");
         JButton nextButton = new JButton("Next");
         JButton openButton = new JButton("Open Comic");
@@ -40,6 +41,7 @@ public class ComicReader extends JFrame {
         JButton fillHeightButton = new JButton("Fill Height");
         JTextField pageNumberField = new JTextField(5);
         JButton goToPageButton = new JButton("Go to Page");
+        JButton toggleDarkModeButton = new JButton("Toggle Dark Mode");
 
         buttonPanel.add(openButton);
         buttonPanel.add(prevButton);
@@ -48,9 +50,10 @@ public class ComicReader extends JFrame {
         buttonPanel.add(zoomOutButton);
         buttonPanel.add(fillWidthButton);
         buttonPanel.add(fillHeightButton);
-        buttonPanel.add(new JLabel("Page:")); // Optional label for clarity
+        buttonPanel.add(new JLabel("Page:"));
         buttonPanel.add(pageNumberField);
         buttonPanel.add(goToPageButton);
+        buttonPanel.add(toggleDarkModeButton);
         add(buttonPanel, BorderLayout.SOUTH);
 
         openButton.addActionListener(e -> openComic());
@@ -61,6 +64,7 @@ public class ComicReader extends JFrame {
         fillWidthButton.addActionListener(e -> fillWidth());
         fillHeightButton.addActionListener(e -> fillHeight());
         goToPageButton.addActionListener(e -> goToPage(pageNumberField));
+        toggleDarkModeButton.addActionListener(e -> toggleDarkMode());
 
         setupKeyBindings();
 
@@ -83,6 +87,8 @@ public class ComicReader extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(helpMenu.getMenu());
         setJMenuBar(menuBar);
+
+        toggleDarkMode();
 
         setVisible(true);
     }
@@ -178,8 +184,6 @@ public class ComicReader extends JFrame {
         });
     }
 
-
-
     private void showPage(int index) {
         if (comicBook == null || index < 0 || index >= comicBook.getPageCount()) {
             return;
@@ -236,6 +240,63 @@ public class ComicReader extends JFrame {
         zoomFactor *= factor;
         // Update the currently displayed page to reflect new zoom
         updateImage(comicBook.getPage(currentPageIndex));
+    }
+
+    private void toggleDarkMode() {
+        isDarkMode = !isDarkMode;
+        Color backgroundColor;
+        Color foregroundColor;
+        Color progressBarForeground;
+        if (isDarkMode) {
+            backgroundColor = Color.BLACK;
+            foregroundColor = Color.WHITE;
+            progressBarForeground = new Color(100, 200, 100);
+        } else {
+            backgroundColor = Color.WHITE;
+            foregroundColor = Color.BLACK;
+            progressBarForeground = new Color(0, 150, 0);
+        }
+        applyLightingMode(backgroundColor, foregroundColor, progressBarForeground);
+        SwingUtilities.updateComponentTreeUI(this); // Refresh the UI
+    }
+
+    private void applyLightingMode(Color backgroundColor, Color foregroundColor, Color progressBarForeground) {
+        getContentPane().setBackground(backgroundColor);
+        progressBar.setBackground(backgroundColor);
+        progressBar.setForeground(progressBarForeground);
+        scrollPane.setBackground(backgroundColor);
+        scrollPane.getViewport().setBackground(backgroundColor);
+        imageLabel.setForeground(foregroundColor);
+
+        // Update buttonPanel background
+        buttonPanel.setBackground(backgroundColor);
+
+        // Customize scrollbars
+        for (Component comp : scrollPane.getComponents()) {
+            if (comp instanceof JScrollBar scrollbar) {
+                scrollbar.setBackground(backgroundColor);
+                scrollbar.setForeground(foregroundColor);
+            }
+        }
+
+        // Assuming buttonPanel is the last component added
+        for (Component comp : buttonPanel.getComponents()) {
+            if (comp instanceof JButton) {
+                comp.setBackground(backgroundColor);
+                comp.setForeground(foregroundColor);
+            } else if (comp instanceof JLabel) {
+                comp.setForeground(foregroundColor);
+            } else if (comp instanceof JTextField) {
+                comp.setBackground(backgroundColor);
+                comp.setForeground(foregroundColor);
+            } else if (comp instanceof JTextArea) {
+                comp.setBackground(backgroundColor);
+                comp.setForeground(foregroundColor);
+            } else if (comp instanceof JTextPane) {
+                comp.setBackground(backgroundColor);
+                comp.setForeground(foregroundColor);
+            }
+        }
     }
 
     public static void main(String[] args) {
