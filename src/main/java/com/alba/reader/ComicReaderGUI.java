@@ -12,8 +12,6 @@ public class ComicReaderGUI extends JFrame {
     private JProgressBar progressBar;
     private int currentPageIndex = 0;
     private float zoomFactor = 1.0f;
-    private boolean isFillWidth = false;
-    private boolean isFillHeight = false;
 
     public ComicReaderGUI() {
         setTitle("Comic Reader");
@@ -200,28 +198,17 @@ public class ComicReaderGUI extends JFrame {
 
     private void updateImage(ComicPage page) {
         ImageIcon icon;
-        // Check if we are in fill mode
-        if (isFillWidth) {
-            int newWidth = scrollPane.getWidth();
-            float aspectRatio = (float) page.getHeight() / page.getWidth();
-            int newHeight = Math.round(newWidth * aspectRatio);
-            icon = new ImageIcon(page.getImage().getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH));
-        } else if (isFillHeight) {
-            int newHeight = scrollPane.getHeight();
-            float aspectRatio = (float) page.getWidth() / page.getHeight();
-            int newWidth = Math.round(newHeight * aspectRatio);
-            icon = new ImageIcon(page.getImage().getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH));
-        } else {
-            icon = new ImageIcon(page.getImage().getScaledInstance(
-                    (int) (page.getWidth() * zoomFactor),
-                    (int) (page.getHeight() * zoomFactor),
-                    Image.SCALE_SMOOTH));
-        }
+
+        // Simply scale based on the current zoom factor
+        icon = new ImageIcon(page.getImage().getScaledInstance(
+                (int) (page.getWidth() * zoomFactor),
+                (int) (page.getHeight() * zoomFactor),
+                Image.SCALE_SMOOTH));
+
         imageLabel.setIcon(icon);
         setTitle(comicBook.getTitle() + " - Page " + (currentPageIndex));
         scrollPane.getVerticalScrollBar().setValue(0);
     }
-
     private void goToPage(JTextField pageNumberField) {
         try {
             int pageNumber = Integer.parseInt(pageNumberField.getText());
@@ -236,20 +223,19 @@ public class ComicReaderGUI extends JFrame {
     }
 
     private void fillWidth() {
-        isFillWidth = true;
-        isFillHeight = false;
+        zoomFactor = (float) scrollPane.getWidth() / comicBook.getPage(currentPageIndex).getWidth(); // Calculate zoom factor
         showPage(currentPageIndex); // Refresh to apply fill width
     }
 
     private void fillHeight() {
-        isFillHeight = true;
-        isFillWidth = false;
+        zoomFactor = (float) scrollPane.getHeight() / comicBook.getPage(currentPageIndex).getHeight(); // Calculate zoom factor
         showPage(currentPageIndex); // Refresh to apply fill height
     }
 
     private void zoom(float factor) {
         zoomFactor *= factor;
-        showPage(currentPageIndex); // Refresh the displayed page with new zoom level
+        // Update the currently displayed page to reflect new zoom
+        updateImage(comicBook.getPage(currentPageIndex));
     }
 
     public static void main(String[] args) {
