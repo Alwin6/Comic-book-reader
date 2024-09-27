@@ -111,7 +111,7 @@ public class Render {
         if (hitShape.properties.reflectiveness > 0 && reflections > 0) {
             Vector3 reflectDir = ray.direction.subtract(normal.multiply(2 * ray.direction.dot(normal))).normalize();
             Ray reflectRay = new Ray(point.add(normal.multiply(1e-5)), reflectDir);
-            Vector3 reflectColor = traceRay(reflectRay, shapes, lights, ambientLight, backgroundColor, sampleCount, -1, reflections-1);
+            Vector3 reflectColor = traceRay(reflectRay, shapes, lights, ambientLight, backgroundColor, sampleCount, -1, reflections-1 , -1);
             color = color.multiply(1 - hitShape.properties.reflectiveness).add(reflectColor.multiply(hitShape.properties.reflectiveness));
         }
 
@@ -119,7 +119,7 @@ public class Render {
         if (hitShape.properties.transparency > 0 && reflections > 0) {
             Vector3 refractDir = refract(ray.direction, normal, 1.0, 1.5);
             Ray refractRay = new Ray(point.add(normal.multiply(-1e-5)), refractDir);
-            Vector3 refractColor = traceRay(refractRay, shapes, lights, ambientLight, backgroundColor, sampleCount, -1, reflections-1);
+            Vector3 refractColor = traceRay(refractRay, shapes, lights, ambientLight, backgroundColor, sampleCount, -1, reflections-1, -1);
             color = color.multiply(1 - hitShape.properties.transparency).add(refractColor.multiply(hitShape.properties.transparency));
         }
 
@@ -174,7 +174,7 @@ public class Render {
         return incident.multiply(ratio).add(normal.multiply(ratio * cosI - cosT));
     }
 
-    public Vector3 traceRay(Ray ray, Shape[] shapes, Light[] light, Vector3 ambientLight, Vector3 backgroundColor, int sampleCount, int selectedObject, int reflections) {
+    public Vector3 traceRay(Ray ray, Shape[] shapes, Light[] light, Vector3 ambientLight, Vector3 backgroundColor, int sampleCount, int selectedObject, int reflections, int selectedObjectType) {
         double closestT = Double.MAX_VALUE;
         Shape closestShape = null;
         int i =0;
@@ -208,7 +208,7 @@ public class Render {
                 }
 
                 // Return the texture or base color multiplied by emission intensity
-                if (clo == selectedObject) {
+                if (clo == selectedObject && selectedObjectType == 0) {
                     Vector3 originalColor = emissionColor.multiply(emissionIntensity).clamp(0, 1);
                     Vector3 invertedColor = new Vector3(1 - originalColor.x, 1 - originalColor.y, 1 - originalColor.z);
                     return invertedColor.multiply(1.5).clamp(0, 1);
@@ -218,7 +218,7 @@ public class Render {
             }
 
             // Compute lighting for non-emissive objects
-            if (clo == selectedObject) {
+            if (clo == selectedObject && selectedObjectType == 0) {
                 Vector3 originalColor = computeLighting(hitPoint, normal, viewDir, closestShape, light, shapes, ambientLight, backgroundColor, ray, sampleCount, reflections);
                 Vector3 invertedColor = new Vector3(1 - originalColor.x, 1 - originalColor.y, 1 - originalColor.z);
                 return invertedColor.multiply(1.5).clamp(0, 1);
@@ -235,7 +235,7 @@ public class Render {
         }
     }
 
-    public Vector3 traceRayBasic(Ray ray, Shape[] shapes, Vector3 backgroundColor, int selectedObject) {
+    public Vector3 traceRayBasic(Ray ray, Shape[] shapes, Vector3 backgroundColor, int selectedObject, int selectedObjectType) {
         double closestT = Double.MAX_VALUE;
         Shape closestShape = null;
         int i = 0;
@@ -252,8 +252,7 @@ public class Render {
 
         if (closestShape != null) {
 
-
-            if (clo == selectedObject) {
+            if (clo == selectedObject && selectedObjectType == 0) {
                 Vector3 originalColor = closestShape.properties.color;
                 Vector3 invertedColor = new Vector3(1 - originalColor.x, 1 - originalColor.y, 1 - originalColor.z);
                 return invertedColor.multiply(1.5).clamp(0, 1);
@@ -263,11 +262,67 @@ public class Render {
             }
         }
 
+        return backgroundColor; // Background color (sky blue)
+    }
+
+    public Vector3 traceRayEdit(Ray ray, Shape[] shapes, Vector3 backgroundColor, int selectedObject, Light[] lights, int selectedObjectType) {
+        double closestT = Double.MAX_VALUE;
+        Shape closestShape = null;
+        Vector3 returner = null;
+        int i = 0;
+        int clo = -1;
+        for (Shape shape : shapes) {
+            double t = shape.intersect(ray);
+            if (t > 0 && t < closestT) {
+                closestT = t;
+                closestShape = shape;
+                clo = i;
+            }
+            i++;
+        }
+        double closestShapeT = closestT;
+
+        if (closestShape != null) {
+            Vector3 col = closestShape.properties.color.multiply(Math.max(Math.min(1 / (closestT/6), 1), .5)).clamp(0, 1);
+            if (clo == selectedObject && selectedObjectType == 0) {
+                Vector3 invertedColor = new Vector3(1 - col.x, 1 - col.y, 1 - col.z);
+                returner =  invertedColor.multiply(1.5).clamp(0, 1);
+            } else {
+                // Return the base color of the non-selected object
+                returner = col;
+            }
+        }
+
+        closestT = Double.MAX_VALUE;
+        Light closestLight = null;
+        i = 0;
+        clo = -1;
+        for (Light light : lights) {
+            double t = light.Intersect(ray);
+            if (t > 0 && t < closestT) {
+                closestT = t;
+                closestLight = light;
+                clo = i;
+            }
+            i++;
+        }
+
+        if (closestLight != null && closestT < closestShapeT) {
+            if (clo == selectedObject && selectedObjectType == 1) {
+                Vector3 invertedColor = new Vector3(1 - closestLight.color.x, 1 - closestLight.color.y, 1 - closestLight.color.z);
+                return invertedColor.multiply(1.5).clamp(0, 1);
+            } else {
+                // Return the base color of the non-selected object
+                return closestLight.color;
+            }
+        } else if (returner != null){
+            return returner;
+        }
 
         return backgroundColor; // Background color (sky blue)
     }
 
-    public int traceFind(Ray ray, Shape[] shapes) {
+    public Vector2 traceFind(Ray ray, Shape[] shapes, Light[] lights, int renderMethod) {
         double closestT = Double.MAX_VALUE;
         int closestSphere = -1;
         int i = 0;
@@ -279,8 +334,28 @@ public class Render {
             }
             i++;
         }
+        double closestShapeT = closestT;
+        closestT = Double.MAX_VALUE;
+        int closestLight = -1;
+        i = 0;
+        for (Light light : lights) {
+            double t = light.Intersect(ray);
+            if (t > 0 && t < closestT) {
+                closestT = t;
+                closestLight = i;
 
-        System.out.println(shapes.length);
-        return closestSphere;
+            }
+            i++;
+        }
+        double what = 0;
+
+        if (closestLight != -1 && closestT < closestShapeT && renderMethod == 2) {
+
+            what = 1;
+            closestSphere = closestLight;
+
+        }
+
+        return new Vector2(closestSphere, what);
     }
 }

@@ -29,6 +29,7 @@ public class Scene extends JPanel implements KeyListener {
     private int renderMethod = 0;
     private int sampleCount = 4;
     private int selectedObject = -1;
+    private int selectedObjectType = 0;
     private int reflections = 150;
 
     private BufferedImage imgR, imgS, imgE; // Image R
@@ -48,6 +49,12 @@ public class Scene extends JPanel implements KeyListener {
     public JTextField colorR, colorG, colorB;
     public JTextField emissivity, metallicness, reflectiveness, smoothness, transparency, texture;
     public JPanel editPanel;  // Container for all settings
+
+    //UI components for light edit panel
+    public JTextField lOriginX, lOriginY, lOriginZ;
+    public JTextField lColorR, lColorG, lColorB;
+    public JTextField intensity, radius;
+    public JPanel lightEditPanel;
 
     public JTextField shapeName;
     public JPanel addPanel;
@@ -130,7 +137,11 @@ public class Scene extends JPanel implements KeyListener {
                             renderMethod = 1;
                             render();
                             repaint();
-                        } else {
+                        } else if (eBounds.contains(e.getPoint())) {
+                            renderMethod = 2;
+                            render();
+                            repaint();
+                        }else {
                             // clicking objects
                             int panelWidth = getWidth();
                             int panelHeight = getHeight();
@@ -141,13 +152,20 @@ public class Scene extends JPanel implements KeyListener {
 
                             Ray ray = camera.getRay(u, v);
                             int previous = selectedObject;
-                            selectedObject = select(ray);
-                            System.out.println(selectedObject);
-                            if (previous == selectedObject) {editPanel.setVisible(false);selectedObject=-1;}
-                            editPanel.setVisible(selectedObject != -1);
+                            int previousSelectedObjectType = selectedObjectType;
+                            Vector2 selection = select(ray);
+                            selectedObject = (int)selection.x;
+                            selectedObjectType = (int)selection.y;
+                            if (previous == selectedObject && selectedObjectType == previousSelectedObjectType) {editPanel.setVisible(false);selectedObject=-1;}
+                            editPanel.setVisible(selectedObject != -1 && selectedObjectType == 0);
+                            lightEditPanel.setVisible(selectedObject != -1 && selectedObjectType == 1);
 
                             if (selectedObject != -1) {
-                                GetValuesOfSelectedObject();
+                                if (selectedObjectType == 0) {
+                                    GetValuesOfSelectedObject();
+                                } else {
+                                    GetValuesOfSelectedLight();
+                                }
                             }
 
                             render(); repaint();
@@ -214,8 +232,8 @@ public class Scene extends JPanel implements KeyListener {
         });
     }
 
-    public int select(Ray ray) {
-        return renderer.traceFind(ray, shapes);
+    public Vector2 select(Ray ray) {
+        return renderer.traceFind(ray, shapes, lights, renderMethod);
     }
 
     public void GetValuesOfSelectedObject() {
@@ -238,6 +256,17 @@ public class Scene extends JPanel implements KeyListener {
         reflectiveness.setText(String.valueOf(shapes[selectedObject].properties.reflectiveness));
         transparency.setText(String.valueOf(shapes[selectedObject].properties.transparency));
         texture.setText(shapes[selectedObject].properties.texture.filename);
+    }
+
+    public void GetValuesOfSelectedLight() {
+        lOriginX.setText(String.valueOf(lights[selectedObject].position.x));
+        lOriginY.setText(String.valueOf(lights[selectedObject].position.y));
+        lOriginZ.setText(String.valueOf(lights[selectedObject].position.z));
+        lColorR.setText(String.valueOf(lights[selectedObject].color.x));
+        lColorG.setText(String.valueOf(lights[selectedObject].color.y));
+        lColorB.setText(String.valueOf(lights[selectedObject].color.z));
+        intensity.setText(String.valueOf(lights[selectedObject].intensity));
+        radius.setText(String.valueOf(lights[selectedObject].radius));
     }
 
     public void initUIComponents(int width) {
@@ -509,6 +538,58 @@ public class Scene extends JPanel implements KeyListener {
 
         setLayout(null);  // Use absolute positioning for overlay components
         // Create edit panel container
+        lightEditPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        lightEditPanel.setBounds(width - 220, 20, 200, 125);  // Position the panel
+        lightEditPanel.setBorder(BorderFactory.createTitledBorder(null, "Light", TitledBorder.LEFT, TitledBorder.TOP, customFont, Color.white));  // Add a border with title
+        lightEditPanel.setBackground(new Color(123, 114, 100, 255));  // Semi-transparent background
+        lightEditPanel.setVisible(false);  // Hidden by default
+        add(lightEditPanel);
+
+
+        JLabel loriginLabel = new JLabel("Location ");
+        loriginLabel.setForeground(Color.white);
+        loriginLabel.setFont(customFont);
+        lightEditPanel.add(loriginLabel);
+
+        lOriginX = createTextField("0", e -> updatelight(), customFont);
+        lightEditPanel.add(lOriginX);
+        lOriginY = createTextField("0", e -> updatelight(), customFont);
+        lightEditPanel.add(lOriginY);
+        lOriginZ = createTextField("0", e -> updatelight(), customFont);
+        lightEditPanel.add(lOriginZ);
+
+        JLabel lcolorLabel = new JLabel("Color      ");
+        lcolorLabel.setForeground(Color.white);
+        lcolorLabel.setFont(customFont);
+        lightEditPanel.add(lcolorLabel);
+
+        lColorR = createTextField("0", e -> updatelight(), customFont);
+        lightEditPanel.add(lColorR);
+        lColorG = createTextField("0", e -> updatelight(), customFont);
+        lightEditPanel.add(lColorG);
+        lColorB = createTextField("0", e -> updatelight(), customFont);
+        lightEditPanel.add(lColorB);
+
+        JLabel intensityLabel = new JLabel("Intensity                               ");
+        intensityLabel.setForeground(Color.white);
+        intensityLabel.setFont(customFont);
+        lightEditPanel.add(intensityLabel);
+
+        intensity = createTextField("0", e -> updatelight(), customFont);
+        lightEditPanel.add(intensity);
+
+        JLabel radiusLabel = new JLabel("Radius                                 ");
+        radiusLabel.setForeground(Color.white);
+        radiusLabel.setFont(customFont);
+        lightEditPanel.add(radiusLabel);
+
+        radius = createTextField("0", e -> updatelight(), customFont);
+        lightEditPanel.add(radius);
+
+        // -----------------------------
+
+        setLayout(null);  // Use absolute positioning for overlay components
+        // Create edit panel container
         addPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         addPanel.setBounds(0, 0, 150, 50);  // Position the panel
         addPanel.setBorder(BorderFactory.createTitledBorder(null, "Add", TitledBorder.LEFT, TitledBorder.TOP, customFont, Color.white));  // Add a border with title
@@ -518,17 +599,33 @@ public class Scene extends JPanel implements KeyListener {
 
         shapeName = createTextField("", e -> {
             if (!shapeName.getText().isEmpty()) {
+                if (!shapeName.getText().equals("light")) {
+                    Shape[] newShapes = Arrays.copyOf(shapes, shapes.length + 1);
+                    newShapes[newShapes.length - 1] = new Shape(shapeName.getText(), new Vector3(0, 0, 0), new Vector3(1, 1, 1), new Vector3(0, 0, 0), new ObjectProperties(new Vector3(.5, .5, .5)));
+                    shapes = newShapes;
 
-                Shape[] newShapes = Arrays.copyOf(shapes, shapes.length + 1);
-                newShapes[newShapes.length - 1] = new Shape(shapeName.getText(), new Vector3(0, 0, 0), new Vector3(1, 1, 1), new Vector3(0, 0, 0), new ObjectProperties(new Vector3(.5, .5, .5)));
-                shapes = newShapes;
+                    selectedObject = shapes.length - 1;
+                    selectedObjectType = 0;
+                    GetValuesOfSelectedObject();
+                    editPanel.setVisible(true);
+                    lightEditPanel.setVisible(false);
+                    render();
+                    repaint();
+                    addPanel.setVisible(false);
+                } else {
+                    Light[] newLights = Arrays.copyOf(lights, lights.length + 1);
+                    newLights[newLights.length - 1] = new Light(new Vector3(0, 0, 0), new Vector3(1, 1, 1), 1, 0);
+                    lights = newLights;
 
-                selectedObject = shapes.length - 1;
-                GetValuesOfSelectedObject();
-                editPanel.setVisible(true);
-                render();
-                repaint();
-                addPanel.setVisible(false);
+                    selectedObject = lights.length - 1;
+                    selectedObjectType = 1;
+                    GetValuesOfSelectedLight();
+                    editPanel.setVisible(false);
+                    lightEditPanel.setVisible(true);
+                    render();
+                    repaint();
+                    addPanel.setVisible(false);
+                }
 
             } else {
                 addPanel.setVisible(false);
@@ -555,6 +652,16 @@ public class Scene extends JPanel implements KeyListener {
                                           Double.parseDouble(transparency.getText()),
                                           new Texture(texture.getText())
                                   )
+        );
+        render();
+        repaint();
+    }
+
+    public void updatelight() {
+        lights[selectedObject] = new Light(new Vector3(Double.parseDouble(lOriginX.getText()), Double.parseDouble(lOriginY.getText()), Double.parseDouble(lOriginZ.getText())),
+                                           new Vector3(Double.parseDouble(lColorR.getText()), Double.parseDouble(lColorG.getText()), Double.parseDouble(lColorB.getText())),
+                                           Double.parseDouble(intensity.getText()),
+                                           Double.parseDouble(radius.getText())
         );
         render();
         repaint();
@@ -649,7 +756,8 @@ public class Scene extends JPanel implements KeyListener {
         int panelWidth = getWidth();
         int panelHeight = getHeight();
 
-        editPanel.setBounds(panelWidth - 220, 20, 200, 300);  // Position the panel
+        editPanel.setBounds(panelWidth - 220, 20, 200, 300);
+        lightEditPanel.setBounds(panelWidth - 220, 20, 200, 125);// Position the panel
 
         // Draw the image scaled to the current size of the panel
         g.drawImage(image, 0, 0, panelWidth, panelHeight, null);
@@ -734,7 +842,7 @@ public class Scene extends JPanel implements KeyListener {
                     double u = (double) i / (width - 1);
                     double v = (double) (height - j - 1) / (height - 1);
                     Ray ray = camera.getRay(u, v);
-                    Vector3 color = renderer.traceRay(ray, shapes, lights, ambientLight, backgroundColor, sampleCount, selectedObject, reflections);
+                    Vector3 color = renderer.traceRay(ray, shapes, lights, ambientLight, backgroundColor, sampleCount, selectedObject, reflections, selectedObjectType);
 
                     int r = (int) (255.99 * color.x);
                     int g = (int) (255.99 * color.y);
@@ -744,13 +852,32 @@ public class Scene extends JPanel implements KeyListener {
                     image.setRGB(i, j, rgb);
                 }
             }
+        } else if (renderMethod == 1) {
+            for (int j = 0; j < height; j+=2) {
+                for (int i = 0; i < width; i+=2) {
+                    double u = (double) i / (width - 1);
+                    double v = (double) (height - j - 1) / (height - 1);
+                    Ray ray = camera.getRay(u, v);
+                    Vector3 color = renderer.traceRayBasic(ray, shapes, backgroundColor, selectedObject, selectedObjectType);
+
+                    int r = (int) (255.99 * color.x);
+                    int g = (int) (255.99 * color.y);
+                    int b = (int) (255.99 * color.z);
+
+                    int rgb = (r << 16) | (g << 8) | b;
+                    image.setRGB(i, j, rgb);
+                    image.setRGB(i+1, j, rgb);
+                    image.setRGB(i+1, j+1, rgb);
+                    image.setRGB(i, j+1, rgb);
+                }
+            }
         } else {
             for (int j = 0; j < height; j+=2) {
                 for (int i = 0; i < width; i+=2) {
                     double u = (double) i / (width - 1);
                     double v = (double) (height - j - 1) / (height - 1);
                     Ray ray = camera.getRay(u, v);
-                    Vector3 color = renderer.traceRayBasic(ray, shapes, backgroundColor, selectedObject);
+                    Vector3 color = renderer.traceRayEdit(ray, shapes, backgroundColor, selectedObject, lights, selectedObjectType);
 
                     int r = (int) (255.99 * color.x);
                     int g = (int) (255.99 * color.y);

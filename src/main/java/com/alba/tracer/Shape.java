@@ -37,7 +37,7 @@ public class Shape {
             return cube.intersectCube(ray);  // Handle both cubes and cuboids
         }
 
-        return -1.0; // No intersection if the object type isn't handled
+        return sphere.intersectSphere(ray); // Render object a sphere if type doesn't exist
     }
 
     // Calculate normal based on the object type
@@ -52,7 +52,7 @@ public class Shape {
             return cube.getCubeNormal(point);
         }
 
-        return null; // No normal if the object type isn't handled
+        return sphere.getSphereNormal(point); // Return sphere normal if type doesn't exist
     }
 
     public Vector2 toUV(Vector3 point, Vector3 center) {
@@ -65,7 +65,7 @@ public class Shape {
         } else if (objectType.equalsIgnoreCase("cube")) {
             return cube.cubeToUV(point, center);
         }
-        return null;
+        return sphere.sphereToUV(point, center); // return sphere uv if type doesn't exist
     }
 
     // Check if the object has uniform scaling (i.e., a sphere)
