@@ -46,9 +46,10 @@ public class ComicBookRar {
         List<BufferedImage> images = new ArrayList<>();
         try (Archive archive = new Archive(file)) {
             FileHeader fileHeader = archive.nextFileHeader();
+            int fileSize = FileTools.getFileSizeMB(file);
             while (fileHeader != null) {
                 // Only process image files
-                if (!fileHeader.isDirectory() && isImageFile(fileHeader.getFileNameString())) {
+                if (!fileHeader.isDirectory() && fileHeader.getFileName().matches(".*\\.(jpg|jpeg|png|gif)$")) {
                     try (InputStream is = archive.getInputStream(fileHeader);
                          ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 
@@ -59,14 +60,20 @@ public class ComicBookRar {
                         }
                         BufferedImage image = ImageIO.read(new ByteArrayInputStream(baos.toByteArray()));
                         if (image != null) {
-                            // Optionally resize the image to reduce memory usage
-                            BufferedImage resizedImage = EditImage.resizeImage(image, 800, 800); // Resize to max width/height of 800px
-                            images.add(resizedImage);
+                            // Resize image if the file size is above 800MB
+                            if(fileSize > 800){
+                                BufferedImage resizedImage = ImageTools.resizeImage(image, 800, 800); // Resize to max width/height of 800px
+                                images.add(resizedImage);
+                            }
+                            else{
+                                images.add(image);
+                            }
+
                         } else {
-                            System.err.println("Failed to read image: " + fileHeader.getFileNameString());
+                            System.err.println("Failed to read image: " + fileHeader.getFileName());
                         }
                     } catch (IOException e) {
-                        System.err.println("Error reading entry: " + fileHeader.getFileNameString());
+                        System.err.println("Error reading entry: " + fileHeader.getFileName());
                     }
                 }
                 fileHeader = archive.nextFileHeader();
@@ -75,20 +82,5 @@ public class ComicBookRar {
             throw new IOException("Error reading RAR file", e);
         }
         return images; // Return the list of images
-    }
-
-    private static boolean isImageFile(String fileName) {
-        String lowerCaseName = fileName.toLowerCase();
-        return lowerCaseName.endsWith(".jpg") || lowerCaseName.endsWith(".jpeg") ||
-                lowerCaseName.endsWith(".png") || lowerCaseName.endsWith(".gif");
-    }
-
-    public static void fileSize(File file) {
-        //checking if the file exists or the file specified is of the type file
-        if ((file.exists()) && (file.isFile()))
-        {
-            System.out.println("The File Size in KiloBytes : "+file.length() / 1024+"kb");
-            System.out.println("The File Size in MegaBytes : "+file.length() / (1024 * 1024)+"mb");
-        }
     }
 }

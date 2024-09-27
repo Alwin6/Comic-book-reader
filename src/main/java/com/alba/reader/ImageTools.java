@@ -3,7 +3,7 @@ package com.alba.reader;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
-public class EditImage {
+public class ImageTools {
 
     // Resize image method
     public static BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) {

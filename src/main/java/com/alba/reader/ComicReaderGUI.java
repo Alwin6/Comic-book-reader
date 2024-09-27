@@ -12,7 +12,8 @@ public class ComicReaderGUI extends JFrame {
     private JProgressBar progressBar;
     private int currentPageIndex = 0;
     private float zoomFactor = 1.0f;
-    private HelpMenu helpMenu;
+    private boolean isFillWidth = false;
+    private boolean isFillHeight = false;
 
     public ComicReaderGUI() {
         setTitle("Comic Reader");
@@ -37,12 +38,21 @@ public class ComicReaderGUI extends JFrame {
         JButton openButton = new JButton("Open Comic");
         JButton zoomInButton = new JButton("Zoom In");
         JButton zoomOutButton = new JButton("Zoom Out");
+        JButton fillWidthButton = new JButton("Fill Width");
+        JButton fillHeightButton = new JButton("Fill Height");
+        JTextField pageNumberField = new JTextField(5);
+        JButton goToPageButton = new JButton("Go to Page");
 
         buttonPanel.add(openButton);
         buttonPanel.add(prevButton);
         buttonPanel.add(nextButton);
         buttonPanel.add(zoomInButton);
         buttonPanel.add(zoomOutButton);
+        buttonPanel.add(fillWidthButton);
+        buttonPanel.add(fillHeightButton);
+        buttonPanel.add(new JLabel("Page:")); // Optional label for clarity
+        buttonPanel.add(pageNumberField);
+        buttonPanel.add(goToPageButton);
         add(buttonPanel, BorderLayout.SOUTH);
 
         openButton.addActionListener(e -> openComic());
@@ -50,6 +60,9 @@ public class ComicReaderGUI extends JFrame {
         nextButton.addActionListener(e -> showPage(currentPageIndex + 1));
         zoomInButton.addActionListener(e -> zoom(1.2f)); // Zoom in by 20%
         zoomOutButton.addActionListener(e -> zoom(0.8f)); // Zoom out by 20%
+        fillWidthButton.addActionListener(e -> fillWidth());
+        fillHeightButton.addActionListener(e -> fillHeight());
+        goToPageButton.addActionListener(e -> goToPage(pageNumberField));
 
         setupKeyBindings();
 
@@ -68,7 +81,7 @@ public class ComicReaderGUI extends JFrame {
         });
 
         // Setup Help Menu
-        helpMenu = new HelpMenu();
+        HelpMenu helpMenu = new HelpMenu();
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(helpMenu.getMenu());
         setJMenuBar(menuBar);
@@ -176,20 +189,62 @@ public class ComicReaderGUI extends JFrame {
         progressBar.setIndeterminate(false);
         currentPageIndex = index;
         ComicPage page = comicBook.getPage(currentPageIndex);
-        if (page.getImage() == null){
+
+        if (page.getImage() == null) {
             currentPageIndex++;
             showPage(currentPageIndex);
+        } else {
+            updateImage(page);
         }
-        else {
-            ImageIcon icon = new ImageIcon(page.getImage().getScaledInstance(
+    }
+
+    private void updateImage(ComicPage page) {
+        ImageIcon icon;
+        // Check if we are in fill mode
+        if (isFillWidth) {
+            int newWidth = scrollPane.getWidth();
+            float aspectRatio = (float) page.getHeight() / page.getWidth();
+            int newHeight = Math.round(newWidth * aspectRatio);
+            icon = new ImageIcon(page.getImage().getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH));
+        } else if (isFillHeight) {
+            int newHeight = scrollPane.getHeight();
+            float aspectRatio = (float) page.getWidth() / page.getHeight();
+            int newWidth = Math.round(newHeight * aspectRatio);
+            icon = new ImageIcon(page.getImage().getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH));
+        } else {
+            icon = new ImageIcon(page.getImage().getScaledInstance(
                     (int) (page.getWidth() * zoomFactor),
                     (int) (page.getHeight() * zoomFactor),
                     Image.SCALE_SMOOTH));
-            imageLabel.setIcon(icon);
-            setTitle(comicBook.getTitle() + " - Page " + (currentPageIndex));
-            scrollPane.getVerticalScrollBar().setValue(0);
         }
+        imageLabel.setIcon(icon);
+        setTitle(comicBook.getTitle() + " - Page " + (currentPageIndex));
+        scrollPane.getVerticalScrollBar().setValue(0);
+    }
 
+    private void goToPage(JTextField pageNumberField) {
+        try {
+            int pageNumber = Integer.parseInt(pageNumberField.getText());
+            if (pageNumber >= 0 && pageNumber <= comicBook.getPageCount()) {
+                showPage(pageNumber);
+            } else {
+                JOptionPane.showMessageDialog(this, "Page number out of range.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid page number.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void fillWidth() {
+        isFillWidth = true;
+        isFillHeight = false;
+        showPage(currentPageIndex); // Refresh to apply fill width
+    }
+
+    private void fillHeight() {
+        isFillHeight = true;
+        isFillWidth = false;
+        showPage(currentPageIndex); // Refresh to apply fill height
     }
 
     private void zoom(float factor) {

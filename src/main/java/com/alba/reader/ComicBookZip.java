@@ -1,7 +1,6 @@
 package com.alba.reader;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
@@ -39,7 +38,7 @@ public class ComicBookZip {
         System.out.println("made array the size of the amount of images which is: " + images.size());
         for (int i = 0; i < images.size(); i++) {
             pages[i] = new ComicPage(images.get(i));
-            System.out.println("Page: " + i + "added");
+            System.out.println("Page: " + i + " added");
         }
         return new ComicBook(file.getName(), pages);
     }
@@ -50,15 +49,21 @@ public class ComicBookZip {
             Enumeration<? extends ZipEntry> entries = zip.entries();
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
+                int fileSize = FileTools.getFileSizeMB(file);
 
                 // Only process image files
                 if (!entry.isDirectory() && entry.getName().matches(".*\\.(jpg|jpeg|png|gif)$")) {
                     try (InputStream is = zip.getInputStream(entry)) {
                         BufferedImage image = ImageIO.read(is);
                         if (image != null) {
-                            // Optionally resize the image to reduce memory usage
-                            BufferedImage resizedImage = EditImage.resizeImage(image, 800, 800); // Resize to max width/height of 800px
-                            images.add(resizedImage);
+                            // Resize image if the file size is above 800MB
+                            if(fileSize > 800){
+                                BufferedImage resizedImage = ImageTools.resizeImage(image, 800, 800); // Resize to max width/height of 800px
+                                images.add(resizedImage);
+                            }
+                            else{
+                                images.add(image);
+                            }
                         } else {
                             System.err.println("Failed to read image: " + entry.getName());
                         }
@@ -69,14 +74,5 @@ public class ComicBookZip {
             }
         }
         return images;
-    }
-
-    public static void fileSize(File file) {
-        //checking if the file exists or the file specified is of the type file
-        if ((file.exists()) && (file.isFile()))
-        {
-            System.out.println("The File Size in KiloBytes : "+file.length() / 1024+"kb");
-            System.out.println("The File Size in MegaBytes : "+file.length() / (1024 * 1024)+"mb");
-        }
     }
 }
