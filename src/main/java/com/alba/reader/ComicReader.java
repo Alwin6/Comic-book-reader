@@ -1,5 +1,7 @@
 package com.alba.reader;
 
+import com.formdev.flatlaf.*;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -11,9 +13,10 @@ public class ComicReader extends JFrame {
     private JScrollPane scrollPane;
     private JProgressBar progressBar;
     private JPanel buttonPanel = new JPanel();
+    private HelpMenu helpMenu = new HelpMenu();
+    private JMenuBar menuBar = new JMenuBar();
     private int currentPageIndex = 0;
     private float zoomFactor = 1.0f;
-    private boolean isDarkMode = false;
 
     public ComicReader() {
         setTitle("Comic Reader");
@@ -83,8 +86,6 @@ public class ComicReader extends JFrame {
         });
 
         // Setup Help Menu
-        HelpMenu helpMenu = new HelpMenu();
-        JMenuBar menuBar = new JMenuBar();
         menuBar.add(helpMenu.getMenu());
         setJMenuBar(menuBar);
 
@@ -156,7 +157,7 @@ public class ComicReader extends JFrame {
 
     private void openComic() {
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("CBZ and CBR files", "cbz","cbr"));
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("CBZ, CBR And Nhl files", "cbz","cbr","nhlcomic"));
         int returnValue = fileChooser.showOpenDialog(this);
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
@@ -243,60 +244,12 @@ public class ComicReader extends JFrame {
     }
 
     private void toggleDarkMode() {
-        isDarkMode = !isDarkMode;
-        Color backgroundColor;
-        Color foregroundColor;
-        Color progressBarForeground;
-        if (isDarkMode) {
-            backgroundColor = Color.BLACK;
-            foregroundColor = Color.WHITE;
-            progressBarForeground = new Color(100, 200, 100);
+        if (!FlatLaf.isLafDark()) {
+            FlatDarkLaf.setup();
         } else {
-            backgroundColor = Color.WHITE;
-            foregroundColor = Color.BLACK;
-            progressBarForeground = new Color(0, 150, 0);
+            FlatLightLaf.setup();
         }
-        applyLightingMode(backgroundColor, foregroundColor, progressBarForeground);
-        SwingUtilities.updateComponentTreeUI(this); // Refresh the UI
-    }
-
-    private void applyLightingMode(Color backgroundColor, Color foregroundColor, Color progressBarForeground) {
-        getContentPane().setBackground(backgroundColor);
-        progressBar.setBackground(backgroundColor);
-        progressBar.setForeground(progressBarForeground);
-        scrollPane.setBackground(backgroundColor);
-        scrollPane.getViewport().setBackground(backgroundColor);
-        imageLabel.setForeground(foregroundColor);
-
-        // Update buttonPanel background
-        buttonPanel.setBackground(backgroundColor);
-
-        // Customize scrollbars
-        for (Component comp : scrollPane.getComponents()) {
-            if (comp instanceof JScrollBar scrollbar) {
-                scrollbar.setBackground(backgroundColor);
-                scrollbar.setForeground(foregroundColor);
-            }
-        }
-
-        // Assuming buttonPanel is the last component added
-        for (Component comp : buttonPanel.getComponents()) {
-            if (comp instanceof JButton) {
-                comp.setBackground(backgroundColor);
-                comp.setForeground(foregroundColor);
-            } else if (comp instanceof JLabel) {
-                comp.setForeground(foregroundColor);
-            } else if (comp instanceof JTextField) {
-                comp.setBackground(backgroundColor);
-                comp.setForeground(foregroundColor);
-            } else if (comp instanceof JTextArea) {
-                comp.setBackground(backgroundColor);
-                comp.setForeground(foregroundColor);
-            } else if (comp instanceof JTextPane) {
-                comp.setBackground(backgroundColor);
-                comp.setForeground(foregroundColor);
-            }
-        }
+        FlatLaf.updateUI();
     }
 
     public static void main(String[] args) {

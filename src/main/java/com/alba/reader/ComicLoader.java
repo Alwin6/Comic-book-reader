@@ -18,14 +18,21 @@ public class ComicLoader {
         worker = new SwingWorker<>() {
             @Override
             protected ComicBook doInBackground() throws Exception {
-                if (FileTypeDetector.isZip(file)) {
-                    comicBook = ComicBookZip.load(file);
+                if (FileTypeDetector.isNhl(file)) {
+                    comicBook = ComicBookNhl.load(file);
+                    for (int i = 0; i < comicBook.getPageCount(); i++) {
+                        publish(i + 1); // Publish progress
+                    }
+                    System.out.println("is nhl file");
+                    return comicBook;
+                } else if (FileTypeDetector.isRar(file)) {
+                    comicBook = ComicBookRar.load(file);
                     for (int i = 0; i < comicBook.getPageCount(); i++) {
                         publish(i + 1); // Publish progress
                     }
                     return comicBook;
-                } else if (FileTypeDetector.isRar(file)) {
-                    comicBook = ComicBookRar.load(file);
+                } else if (FileTypeDetector.isZip(file)) {
+                    comicBook = ComicBookZip.load(file);
                     for (int i = 0; i < comicBook.getPageCount(); i++) {
                         publish(i + 1); // Publish progress
                     }
