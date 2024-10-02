@@ -75,12 +75,15 @@ public class ComicReader extends JFrame {
         // Mouse Wheel Listener for Zooming
         scrollPane.addMouseWheelListener(e -> {
             if (e.isControlDown()) {
-                // Zoom in if the wheel is rotated up (positive)
-                if (e.getWheelRotation() < 0) {
+                // Use precise wheel rotation for better accuracy
+                double rotation = e.getPreciseWheelRotation();
+
+                // Zoom in if the wheel is rotated up (negative rotation)
+                if (rotation < 0) {
                     zoom(1.05f);
                 }
-                // Zoom out if the wheel is rotated down (negative)
-                else {
+                // Zoom out if the wheel is rotated down (positive rotation)
+                else if (rotation > 0) {
                     zoom(0.95f);
                 }
             }
