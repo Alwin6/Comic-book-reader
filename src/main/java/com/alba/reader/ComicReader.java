@@ -20,6 +20,7 @@ public class ComicReader extends JFrame {
 
     public ComicReader() {
         setTitle("Comic Reader");
+        setSize(1280, 720); // prevents the window from just being the title bar when not maximized
         setExtendedState(Frame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -211,7 +212,7 @@ public class ComicReader extends JFrame {
                 Image.SCALE_SMOOTH));
 
         imageLabel.setIcon(icon);
-        setTitle(comicBook.getTitle() + " - Page " + (currentPageIndex));
+        setTitle(comicBook.getTitle() + " - Page " + (currentPageIndex + 1) + "/" + comicBook.getPageCount());
         scrollPane.getVerticalScrollBar().setValue(0);
     }
     private void goToPage(JTextField pageNumberField) {

@@ -57,7 +57,7 @@ public class ComicBookNhl {
                             ComicPage[] pages = new ComicPage[count];
                             for (int index = 0; index < count; index++) {
                                 BufferedImage image = reader.read(index);
-                                pages[index] = new ComicPage(image);
+                                pages[count - index - 1] = new ComicPage(image); // reverse page order
                             }
                             return pages;
                         }
