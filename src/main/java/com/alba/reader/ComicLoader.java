@@ -19,19 +19,21 @@ public class ComicLoader {
             @Override
             protected ComicBook doInBackground() throws Exception {
                 if (FileTypeDetector.isNhl(file)) {
+                    System.out.println("nhl");
                     comicBook = ComicBookNhl.load(file);
                     for (int i = 0; i < comicBook.getPageCount(); i++) {
                         publish(i + 1); // Publish progress
                     }
-                    System.out.println("is nhl file");
                     return comicBook;
                 } else if (FileTypeDetector.isRar(file)) {
+                    System.out.println("rar");
                     comicBook = ComicBookRar.load(file);
                     for (int i = 0; i < comicBook.getPageCount(); i++) {
                         publish(i + 1); // Publish progress
                     }
                     return comicBook;
                 } else if (FileTypeDetector.isZip(file)) {
+                    System.out.println("zip");
                     comicBook = ComicBookZip.load(file);
                     for (int i = 0; i < comicBook.getPageCount(); i++) {
                         publish(i + 1); // Publish progress

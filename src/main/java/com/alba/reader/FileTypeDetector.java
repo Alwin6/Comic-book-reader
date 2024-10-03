@@ -30,17 +30,18 @@ public class FileTypeDetector {
         return isNhl(new File(fileName));
     }
 
-    public static boolean isNhl(File file) {
-        try (ZipFile zip = new ZipFile(file)) {
-
-            Enumeration<? extends ZipEntry> entries = zip.entries();
-            while (entries.hasMoreElements()) {
-                ZipEntry entry = entries.nextElement();
-                if (entry.getName().matches(".*\\.(gif)$"))
-                    return true;
+    public static boolean isNhl(File file){
+        if (isZip(file)) {
+            try (ZipFile zip = new ZipFile(file)) {
+                Enumeration<? extends ZipEntry> entries = zip.entries();
+                while (entries.hasMoreElements()) {
+                    ZipEntry entry = entries.nextElement();
+                    if (entry.getName().matches(".*\\.(gif)$"))
+                        return true;
+                }
+            } catch (IOException e) {
+                return false;
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
         return false;
     }

@@ -14,6 +14,8 @@ public class ComicReader extends JFrame {
     private JProgressBar progressBar;
     private JPanel buttonPanel = new JPanel();
     private HelpMenu helpMenu = new HelpMenu();
+    private ViewMenu viewMenu = new ViewMenu(this);
+    private OpenMenu openMenu = new OpenMenu(this);
     private JMenuBar menuBar = new JMenuBar();
     private int currentPageIndex = 0;
     private float zoomFactor = 1.0f;
@@ -30,45 +32,30 @@ public class ComicReader extends JFrame {
 
         scrollPane = new JScrollPane(imageLabel);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         add(scrollPane, BorderLayout.CENTER);
 
         progressBar = new JProgressBar();
         add(progressBar, BorderLayout.NORTH);
+        progressBar.setVisible(false);
 
         JButton prevButton = new JButton("Previous");
         JButton nextButton = new JButton("Next");
-        JButton openButton = new JButton("Open Comic");
-        JButton zoomInButton = new JButton("Zoom In");
-        JButton zoomOutButton = new JButton("Zoom Out");
-        JButton fillWidthButton = new JButton("Fill Width");
-        JButton fillHeightButton = new JButton("Fill Height");
         JTextField pageNumberField = new JTextField(5);
         JButton goToPageButton = new JButton("Go to Page");
-        JButton toggleDarkModeButton = new JButton("Toggle Dark Mode");
 
-        buttonPanel.add(openButton);
         buttonPanel.add(prevButton);
         buttonPanel.add(nextButton);
-        buttonPanel.add(zoomInButton);
-        buttonPanel.add(zoomOutButton);
-        buttonPanel.add(fillWidthButton);
-        buttonPanel.add(fillHeightButton);
         buttonPanel.add(new JLabel("Page:"));
         buttonPanel.add(pageNumberField);
         buttonPanel.add(goToPageButton);
-        buttonPanel.add(toggleDarkModeButton);
         add(buttonPanel, BorderLayout.SOUTH);
 
-        openButton.addActionListener(e -> openComic());
         prevButton.addActionListener(e -> showPage(currentPageIndex - 1));
         nextButton.addActionListener(e -> showPage(currentPageIndex + 1));
-        zoomInButton.addActionListener(e -> zoom(1.2f)); // Zoom in by 20%
-        zoomOutButton.addActionListener(e -> zoom(0.8f)); // Zoom out by 20%
-        fillWidthButton.addActionListener(e -> fillWidth());
-        fillHeightButton.addActionListener(e -> fillHeight());
         goToPageButton.addActionListener(e -> goToPage(pageNumberField));
-        toggleDarkModeButton.addActionListener(e -> toggleDarkMode());
 
         setupKeyBindings();
 
@@ -89,7 +76,8 @@ public class ComicReader extends JFrame {
             }
         });
 
-        // Setup Help Menu
+        menuBar.add(openMenu.getMenu());
+        menuBar.add(viewMenu.getMenu());
         menuBar.add(helpMenu.getMenu());
         setJMenuBar(menuBar);
 
@@ -159,7 +147,7 @@ public class ComicReader extends JFrame {
         });
     }
 
-    private void openComic() {
+    public void openComic() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("CBZ, CBR And Nhl files", "cbz","cbr","nhlcomic"));
         int returnValue = fileChooser.showOpenDialog(this);
@@ -171,6 +159,7 @@ public class ComicReader extends JFrame {
     }
 
     private void loadComicInBackground(File file) {
+        progressBar.setVisible(true);
         ComicLoader loader = new ComicLoader(file, progressBar);
         loader.loadComicInBackground();
 
@@ -191,9 +180,11 @@ public class ComicReader extends JFrame {
 
     private void showPage(int index) {
         if (comicBook == null || index < 0 || index >= comicBook.getPageCount()) {
+            JOptionPane.showMessageDialog(this, "Error loading comic", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         progressBar.setIndeterminate(false);
+        progressBar.setVisible(false);
         currentPageIndex = index;
         ComicPage page = comicBook.getPage(currentPageIndex);
 
@@ -221,8 +212,8 @@ public class ComicReader extends JFrame {
     private void goToPage(JTextField pageNumberField) {
         try {
             int pageNumber = Integer.parseInt(pageNumberField.getText());
-            if (pageNumber >= 0 && pageNumber <= comicBook.getPageCount()) {
-                showPage(pageNumber);
+            if (pageNumber > 0 && pageNumber <= comicBook.getPageCount()) {
+                showPage(pageNumber - 1);
             } else {
                 JOptionPane.showMessageDialog(this, "Page number out of range.", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -231,23 +222,23 @@ public class ComicReader extends JFrame {
         }
     }
 
-    private void fillWidth() {
+    public void fillWidth() {
         zoomFactor = (float) scrollPane.getWidth() / comicBook.getPage(currentPageIndex).getWidth(); // Calculate zoom factor
         showPage(currentPageIndex); // Refresh to apply fill width
     }
 
-    private void fillHeight() {
+    public void fillHeight() {
         zoomFactor = (float) scrollPane.getHeight() / comicBook.getPage(currentPageIndex).getHeight(); // Calculate zoom factor
         showPage(currentPageIndex); // Refresh to apply fill height
     }
 
-    private void zoom(float factor) {
+    public void zoom(float factor) {
         zoomFactor *= factor;
         // Update the currently displayed page to reflect new zoom
         updateImage(comicBook.getPage(currentPageIndex));
     }
 
-    private void toggleDarkMode() {
+    public void toggleDarkMode() {
         if (!FlatLaf.isLafDark()) {
             FlatDarkLaf.setup();
         } else {
