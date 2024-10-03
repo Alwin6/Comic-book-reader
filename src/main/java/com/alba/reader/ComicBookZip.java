@@ -1,5 +1,7 @@
 package com.alba.reader;
 
+import org.json.JSONObject;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -45,8 +47,10 @@ public class ComicBookZip {
 
     private static List<BufferedImage> unzip(File file) throws IOException {
         List<BufferedImage> images = new ArrayList<>();
+        JSONObject metadata;
         try (ZipFile zip = new ZipFile(file)) {
             Enumeration<? extends ZipEntry> entries = zip.entries();
+            metadata = new JSONObject();
             int fileSize = FileTools.getFileSizeMB(file);
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
@@ -57,11 +61,10 @@ public class ComicBookZip {
                         BufferedImage image = ImageIO.read(is);
                         if (image != null) {
                             // Resize image if the file size is above 800MB
-                            if(fileSize > 800){
+                            if (fileSize > 800) {
                                 BufferedImage resizedImage = ImageTools.resizeImage(image, 800, 800); // Resize to max width/height of 800px
                                 images.add(resizedImage);
-                            }
-                            else{
+                            } else {
                                 images.add(image);
                             }
                         } else {
@@ -71,8 +74,17 @@ public class ComicBookZip {
                         System.err.println("Error reading entry: " + entry.getName());
                     }
                 }
+
+                if (!entry.isDirectory() && entry.getName().matches(".*\\.(xml)$")) {
+                    InputStream inputStream = zip.getInputStream(entry);
+                    MetadataManager metadataManager = new MetadataManager(inputStream);
+                    metadata = metadataManager.XMLtoMetadata();
+                }
             }
         }
+        ComicListManager comicListManager = new ComicListManager();
+        comicListManager.updateJSON(file.getName(), metadata);
+
         return images;
     }
 }

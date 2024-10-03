@@ -9,6 +9,7 @@ import java.util.UnknownFormatConversionException;
 import com.github.junrar.Archive;
 import com.github.junrar.exception.RarException;
 import com.github.junrar.rarfile.FileHeader;
+import org.json.JSONObject;
 
 public class ComicBookRar {
 
@@ -44,6 +45,7 @@ public class ComicBookRar {
 
     private static List<BufferedImage> extractImages(File file) throws IOException {
         List<BufferedImage> images = new ArrayList<>();
+        JSONObject metadata = new JSONObject();
         try (Archive archive = new Archive(file)) {
             FileHeader fileHeader = archive.nextFileHeader();
             int fileSize = FileTools.getFileSizeMB(file);
@@ -76,11 +78,21 @@ public class ComicBookRar {
                         System.err.println("Error reading entry: " + fileHeader.getFileName());
                     }
                 }
+
+                if (!fileHeader.isDirectory() && fileHeader.getFileName().matches(".*\\.(xml)$")) {
+                    InputStream inputStream = archive.getInputStream(fileHeader);
+                    MetadataManager metadataManager = new MetadataManager(inputStream);
+                    metadata = metadataManager.XMLtoMetadata();
+                }
+
                 fileHeader = archive.nextFileHeader();
             }
         } catch (RarException e) {
             throw new IOException("Error reading RAR file", e);
         }
+        ComicListManager comicListManager = new ComicListManager();
+        comicListManager.updateJSON(file.getName(), metadata);
+
         return images; // Return the list of images
     }
 }

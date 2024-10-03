@@ -1,18 +1,16 @@
 package com.alba.reader;
 
+import org.json.JSONObject;
+
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.UnknownFormatConversionException;
+import java.io.*;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
 
 public class ComicBookNhl {
 
@@ -31,12 +29,15 @@ public class ComicBookNhl {
         if (!file.exists()) {
             throw new FileNotFoundException();
         }
+
         return new ComicBook(file.getName(),getPagesFromGifInZip(file));
     }
 
     public static ComicPage[] getPagesFromGifInZip(File file) throws IOException {
         try (ZipFile zip = new ZipFile(file)) {
             Enumeration<? extends ZipEntry> entries = zip.entries();
+            ComicPage[] pagesTemp = new ComicPage[0];
+            JSONObject metadata = new JSONObject();
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
 
@@ -59,15 +60,27 @@ public class ComicBookNhl {
                                 BufferedImage image = reader.read(index);
                                 pages[count - index - 1] = new ComicPage(image); // reverse page order
                             }
-                            return pages;
+                            pagesTemp = pages;
+
                         }
                     } catch (IOException ex) {
                         // Handle exceptions as needed
                     }
                 }
+
+                if (!entry.isDirectory() && entry.getName().matches(".*\\.(json)$")) {
+                    InputStream inputStream = zip.getInputStream(entry);
+                    MetadataManager metadataManager = new MetadataManager(inputStream);
+                    metadata = metadataManager.getMetadata();
+
+                }
             }
+            ComicListManager comicListManager = new ComicListManager();
+            comicListManager.updateJSON(file.getName(), metadata);
+
+            return pagesTemp;
         }
-        return new ComicPage[0];
+       // return new ComicPage[0];
     }
 
 
