@@ -12,43 +12,43 @@ import java.util.Objects;
 public class MetadataDialog {
 
     public static void MetadataDialog(File file) {
-        JSONObject metadata;
+        JSONObject metadataObject;
 
         // Attempt to load the metadata from the current comic
         ComicListManager cm = new ComicListManager();
         try {
-            metadata = cm.getMetadata(file.getName());
+            metadataObject = cm.getMetadata(file.getName());
         } catch (IOException e) {
-            metadata = new JSONObject();
+            metadataObject = new JSONObject();
         }
-        String md = "";
+        String metadata = "";
 
-        if (JSONObject.getNames(metadata) != null) {
+        if (JSONObject.getNames(metadataObject) != null) {
             // Certain files have an object and not metadata we can use
-            if (metadata.has("ComicInfo")) {
-                metadata = metadata.getJSONObject("ComicInfo");
+            if (metadataObject.has("ComicInfo")) {
+                metadataObject = metadataObject.getJSONObject("ComicInfo");
             }
 
             // Go through every field
-            String[] fields = JSONObject.getNames(metadata);
+            String[] fields = JSONObject.getNames(metadataObject);
             for (String field : fields) {
                 // Exclude xml specific fields that remain from conversion to JSON and get the value of each field as a string
                 if (!Objects.equals(field, "xmlns:xsd") & !Objects.equals(field, "xmlns:xsi")) {
                     String value;
                     try {
-                        value = metadata.getString(field);
+                        value = metadataObject.getString(field);
                     } catch (JSONException e) {
                         try {
-                            value = String.valueOf(metadata.getInt(field));
+                            value = String.valueOf(metadataObject.getInt(field));
                         } catch (JSONException e1) {
                             try {
-                                value = String.valueOf(metadata.getFloat(field));
+                                value = String.valueOf(metadataObject.getFloat(field));
                             } catch (JSONException e2) {
                                 try {
-                                    value = String.valueOf(metadata.getDouble(field));
+                                    value = String.valueOf(metadataObject.getDouble(field));
                                 } catch (JSONException e3) {
                                     try {
-                                        value = String.valueOf(metadata.getBoolean(field));
+                                        value = String.valueOf(metadataObject.getBoolean(field));
                                     } catch (JSONException e4) {
                                         value = "";
                                     }
@@ -57,14 +57,14 @@ public class MetadataDialog {
                         }
                     }
 
-                    md = md + field + ": " + value + "\n";
+                    metadata += field + ": " + value + "\n";
                 }
             }
         } else {
-            md = "This file has no metadata.";
+            metadata = "This file has no metadata.";
         }
 
-        String controls = md;
+        String controls = metadata;
 
         JOptionPane.showMessageDialog(null, controls, "Open - Metadata", JOptionPane.INFORMATION_MESSAGE);
     }

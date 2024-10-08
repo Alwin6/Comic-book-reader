@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.awt.image.BufferedImage;
 
 public class ComicReader extends JFrame {
     private ComicBook comicBook;
@@ -18,8 +19,12 @@ public class ComicReader extends JFrame {
     private OpenMenu openMenu = new OpenMenu(this);
     private JMenuBar menuBar = new JMenuBar();
     private File currentComic;
+    private BufferedImage cachedImage;
     private int currentPageIndex = 0;
     private float zoomFactor = 1.0f;
+    private float lastZoomFactor = 1.0f;
+    private static final float ZOOM_IN_LIMIT = 3.0f;
+    private static final float ZOOM_OUT_LIMIT = 0.05f;
 
     public ComicReader() {
         setupFrame();
@@ -141,8 +146,10 @@ public class ComicReader extends JFrame {
                     currentPageIndex = 0;
                     zoomFactor = 1.0f; // Reset zoom
                     showPage(currentPageIndex);
+                    progressBar.setVisible(false);
                 } catch (Exception e) {
                     showError("Error loading comic: " + e.getMessage());
+                    progressBar.setVisible(false);
                 }
             }
         });
@@ -153,27 +160,55 @@ public class ComicReader extends JFrame {
             showError("Error loading comic");
             return;
         }
-        progressBar.setVisible(false);
         currentPageIndex = index;
         ComicPage page = comicBook.getPage(currentPageIndex);
 
         if (page.getImage() == null) {
             showPage(currentPageIndex + 1);
         } else {
+            cachedImage = null;
             updateImage(page);
         }
     }
 
     private void updateImage(ComicPage page) {
-        ImageIcon icon = new ImageIcon(page.getImage().getScaledInstance(
-                (int) (page.getWidth() * zoomFactor),
-                (int) (page.getHeight() * zoomFactor),
-                Image.SCALE_SMOOTH));
+        // Check if the page image is null, if so exit
+        BufferedImage image = page.getImage();
+        if (image == null) {
+            showError("Image not available for this page.");
+        }
 
-        imageLabel.setIcon(icon);
+        // Calculate a relative minimum change threshold
+        float relativeThreshold = Math.max(0.01f, zoomFactor * 0.05f);
+
+        // Scale the image only if the zoom factor has changed significantly
+        if (Math.abs(zoomFactor - lastZoomFactor) >= relativeThreshold) {
+            cachedImage = scaleImage(image, zoomFactor);
+            System.out.println(zoomFactor);
+            lastZoomFactor = zoomFactor; // Update lastZoomFactor
+        } else if (cachedImage == null) {
+            // If no significant change, but cachedImage is null, create the initial cached image
+            cachedImage = scaleImage(image, zoomFactor);
+        }
+
+        // Set the icon to the cached image
+        imageLabel.setIcon(new ImageIcon(cachedImage));
         setTitle(comicBook.getTitle() + " - Page " + (currentPageIndex + 1) + "/" + comicBook.getPageCount());
         scrollPane.getVerticalScrollBar().setValue(0);
     }
+
+    private BufferedImage scaleImage(BufferedImage image, float zoomFactor) {
+        BufferedImage scaledImage = new BufferedImage(
+                (int) (image.getWidth() * zoomFactor),
+                (int) (image.getHeight() * zoomFactor),
+                BufferedImage.SCALE_SMOOTH
+        );
+        Graphics2D g2d = scaledImage.createGraphics();
+        g2d.drawImage(image, 0, 0, scaledImage.getWidth(), scaledImage.getHeight(), null);
+        g2d.dispose();
+        return scaledImage;
+    }
+
 
     private void goToPage(JTextField pageNumberField) {
         try {
@@ -199,8 +234,21 @@ public class ComicReader extends JFrame {
     }
 
     public void zoom(float factor) {
-        zoomFactor *= factor;
-        updateImage(comicBook.getPage(currentPageIndex));
+        // Calculate new zoom factor
+        float tempZoomFactor = zoomFactor * factor;
+
+        // Apply limits to the zoom factor
+        if (tempZoomFactor > ZOOM_IN_LIMIT) {
+            tempZoomFactor = ZOOM_IN_LIMIT;
+        } else if (tempZoomFactor < ZOOM_OUT_LIMIT) {
+            tempZoomFactor = ZOOM_OUT_LIMIT;
+        }
+        zoomFactor = tempZoomFactor;
+
+        // Only update the image if the comic book is loaded
+        if (comicBook != null) {
+            updateImage(comicBook.getPage(currentPageIndex));
+        }
     }
 
     public void toggleDarkMode() {
