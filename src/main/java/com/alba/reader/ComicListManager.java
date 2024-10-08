@@ -12,6 +12,15 @@ public class ComicListManager {
 
     }
 
+    public JSONObject getMetadata(String filename) throws IOException {
+        try (FileReader reader = LoadComicList()) {
+            JSONTokener tokener = new JSONTokener(reader);
+            JSONObject comicList = new JSONObject(tokener);
+
+            return comicList.getJSONObject(filename).getJSONObject("metadata");
+        }
+    }
+
     public void updateJSON(String filename, JSONObject metadata) throws IOException {
         try (FileReader reader = LoadComicList()) {
             JSONTokener tokener = new JSONTokener(reader);

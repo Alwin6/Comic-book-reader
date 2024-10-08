@@ -1,7 +1,6 @@
 package com.alba.reader;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
 
 public class OpenMenu {
     private JMenu openMenu;
@@ -12,6 +11,10 @@ public class OpenMenu {
         JMenuItem openComicItem = new JMenuItem("Open Comic");
         openComicItem.addActionListener(e -> comicReader.openComic());
         openMenu.add(openComicItem);
+
+        JMenuItem openMetadataItem = new JMenuItem("Open Metadata");
+        openMetadataItem.addActionListener(e -> MetadataDialog.MetadataDialog(comicReader.getCurrentComic()));
+        openMenu.add(openMetadataItem);
     }
 
     public JMenu getMenu() {
