@@ -141,8 +141,10 @@ public class ComicReader extends JFrame {
                     currentPageIndex = 0;
                     zoomFactor = 1.0f; // Reset zoom
                     showPage(currentPageIndex);
+                    progressBar.setVisible(false);
                 } catch (Exception e) {
                     showError("Error loading comic: " + e.getMessage());
+                    progressBar.setVisible(false);
                 }
             }
         });
@@ -153,7 +155,6 @@ public class ComicReader extends JFrame {
             showError("Error loading comic");
             return;
         }
-        progressBar.setVisible(false);
         currentPageIndex = index;
         ComicPage page = comicBook.getPage(currentPageIndex);
 
