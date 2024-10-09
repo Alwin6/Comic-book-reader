@@ -122,6 +122,15 @@ public class ComicReader extends JFrame {
     }
 
     public void openComic() {
+        // Clear the current comic and its resources
+        if (comicBook != null) {
+            comicBook = null; // Clear reference to the current comic
+            currentComic = null; // Clear file
+            cachedImage = null; // Clear cached image
+            currentPageIndex = 0; // Reset current page index
+            imageLabel.setIcon(null); // Clear displayed image
+        }
+
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("CBZ, CBR And Nhl files", "cbz", "cbr", "nhlcomic"));
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
