@@ -29,6 +29,7 @@ public class HelpMenu {
                 Control + Plus: Zoom In
                 Control + Minus: Zoom Out
                 Control + Mouse Wheel: Zoom In/Out
+                P: Open Page Selection, Hit Enter To Go To Page
                 """;
 
         JOptionPane.showMessageDialog(null, controls, "Help - Controls", JOptionPane.INFORMATION_MESSAGE);

@@ -30,8 +30,8 @@ public class ComicReader extends JFrame {
         setupFrame();
         setupScrollPane();
         setupProgressBar();
-        setupButtons();
-        setupMenu();
+        //setupButtons(); work in progress
+        setupMenuBar();
         setupKeyBindings();
         setupMouseWheelZoom();
 
@@ -62,24 +62,30 @@ public class ComicReader extends JFrame {
     }
 
     private void setupButtons() {
-        JButton prevButton = new JButton("Previous");
-        JButton nextButton = new JButton("Next");
-        JTextField pageNumberField = new JTextField(5);
-        JButton goToPageButton = new JButton("Go to Page");
+        JButton prevButton = new JButton("<");
+        JButton nextButton = new JButton(">");
+
+        // Customize buttons to have a smaller size and no borders
+        prevButton.setPreferredSize(new Dimension(50, 50));
+        nextButton.setPreferredSize(new Dimension(50, 50));
+        prevButton.setBorderPainted(false);
+        nextButton.setBorderPainted(false);
+        prevButton.setFocusPainted(false);
+        nextButton.setFocusPainted(false);
+
+        // Set button actions
+        prevButton.addActionListener(e -> showPage(currentPageIndex - 1));
+        nextButton.addActionListener(e -> showPage(currentPageIndex + 1));
 
         buttonPanel.add(prevButton);
         buttonPanel.add(nextButton);
-        buttonPanel.add(new JLabel("Page:"));
-        buttonPanel.add(pageNumberField);
-        buttonPanel.add(goToPageButton);
-        add(buttonPanel, BorderLayout.SOUTH);
 
-        prevButton.addActionListener(e -> showPage(currentPageIndex - 1));
-        nextButton.addActionListener(e -> showPage(currentPageIndex + 1));
-        goToPageButton.addActionListener(e -> goToPage(pageNumberField));
+        // Add the button panel to the left and right of the frame
+        add(prevButton, BorderLayout.WEST);
+        add(nextButton, BorderLayout.EAST);
     }
 
-    private void setupMenu() {
+    private void setupMenuBar() {
         menuBar.add(openMenu.getMenu());
         menuBar.add(viewMenu.getMenu());
         menuBar.add(helpMenu.getMenu());
@@ -96,6 +102,7 @@ public class ComicReader extends JFrame {
         bindKeyAction(inputMap, actionMap, "control MINUS", "zoomOut", e -> zoom(0.8f));
         bindKeyAction(inputMap, actionMap, "UP", "scrollUp", e -> scroll(-20));
         bindKeyAction(inputMap, actionMap, "DOWN", "scrollDown", e -> scroll(20));
+        bindKeyAction(inputMap, actionMap, "P", "promptPage", e -> promptForPage());
     }
 
     private void bindKeyAction(InputMap inputMap, ActionMap actionMap, String key, String name, ActionListener action) {
@@ -218,6 +225,38 @@ public class ComicReader extends JFrame {
         return scaledImage;
     }
 
+    private void promptForPage() {
+        JDialog dialog = new JDialog(this, "Go to Page", true);
+        JTextField pageNumberField = new JTextField(5);
+        JButton okButton = new JButton("OK");
+        JButton cancelButton = new JButton("Cancel");
+
+        okButton.addActionListener(e -> {
+            goToPage(pageNumberField);
+            dialog.dispose();
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        // Key binding for the Enter key
+        pageNumberField.addActionListener(e -> {
+            goToPage(pageNumberField);
+            dialog.dispose();
+        });
+
+        // Set up the dialog layout
+        dialog.setLayout(new FlowLayout());
+        dialog.add(new JLabel("Enter page number:"));
+        dialog.add(pageNumberField);
+        dialog.add(okButton);
+        dialog.add(cancelButton);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this); // Center the dialog
+        dialog.setVisible(true); // Show the dialog
+
+        // Request focus for the text field
+        pageNumberField.requestFocusInWindow();
+    }
 
     private void goToPage(JTextField pageNumberField) {
         try {
