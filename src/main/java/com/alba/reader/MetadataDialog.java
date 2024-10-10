@@ -34,28 +34,8 @@ public class MetadataDialog {
             for (String field : fields) {
                 // Exclude xml specific fields that remain from conversion to JSON and get the value of each field as a string
                 if (!Objects.equals(field, "xmlns:xsd") & !Objects.equals(field, "xmlns:xsi")) {
-                    String value;
-                    try {
-                        value = metadataObject.getString(field);
-                    } catch (JSONException e) {
-                        try {
-                            value = String.valueOf(metadataObject.getInt(field));
-                        } catch (JSONException e1) {
-                            try {
-                                value = String.valueOf(metadataObject.getFloat(field));
-                            } catch (JSONException e2) {
-                                try {
-                                    value = String.valueOf(metadataObject.getDouble(field));
-                                } catch (JSONException e3) {
-                                    try {
-                                        value = String.valueOf(metadataObject.getBoolean(field));
-                                    } catch (JSONException e4) {
-                                        value = "";
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    Object obj = metadata.opt(field);
+                    String value = (obj != null && !JSONObject.NULL.equals(obj)) ? obj.toString() : "";
 
                     metadata += field + ": " + value + "\n";
                 }
