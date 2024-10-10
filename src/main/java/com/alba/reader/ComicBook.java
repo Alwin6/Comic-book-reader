@@ -13,7 +13,7 @@ public class ComicBook {
         return title;
     }
 
-    public ComicPage[] etPages() {
+    public ComicPage[] getPages() {
         return pages;
     }
 

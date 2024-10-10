@@ -3,13 +3,14 @@ package com.alba.reader;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UnknownFormatConversionException;
+import org.json.JSONObject;
+
 import com.github.junrar.Archive;
 import com.github.junrar.exception.RarException;
 import com.github.junrar.rarfile.FileHeader;
-import org.json.JSONObject;
 
 public class ComicBookRar {
 
@@ -31,14 +32,12 @@ public class ComicBookRar {
         if (!file.exists()) {
             throw new FileNotFoundException();
         }
-        System.out.println("Beginning to extract file");
         List<BufferedImage> images = extractImages(file);
-        System.out.println("Extracted file");
+
         ComicPage[] pages = new ComicPage[images.size()];
-        System.out.println("Created array of size: " + images.size());
+
         for (int i = 0; i < images.size(); i++) {
             pages[i] = new ComicPage(images.get(i));
-            System.out.println("Page: " + i + " added");
         }
         return new ComicBook(file.getName(), pages);
     }

@@ -12,39 +12,39 @@ import java.util.Objects;
 public class MetadataDialog {
 
     public static void MetadataDialog(File file) {
-        JSONObject metadata;
+        JSONObject metadataObject;
 
         // Attempt to load the metadata from the current comic
         ComicListManager cm = new ComicListManager();
         try {
-            metadata = cm.getMetadata(file.getName());
+            metadataObject = cm.getMetadata(file.getName());
         } catch (IOException e) {
-            metadata = new JSONObject();
+            metadataObject = new JSONObject();
         }
-        String md = "";
+        String metadata = "";
 
-        if (JSONObject.getNames(metadata) != null) {
+        if (JSONObject.getNames(metadataObject) != null) {
             // Certain files have an object and not metadata we can use
-            if (metadata.has("ComicInfo")) {
-                metadata = metadata.getJSONObject("ComicInfo");
+            if (metadataObject.has("ComicInfo")) {
+                metadataObject = metadataObject.getJSONObject("ComicInfo");
             }
 
             // Go through every field
-            String[] fields = JSONObject.getNames(metadata);
+            String[] fields = JSONObject.getNames(metadataObject);
             for (String field : fields) {
                 // Exclude xml specific fields that remain from conversion to JSON and get the value of each field as a string
                 if (!Objects.equals(field, "xmlns:xsd") & !Objects.equals(field, "xmlns:xsi")) {
                     Object obj = metadata.opt(field);
                     String value = (obj != null && !JSONObject.NULL.equals(obj)) ? obj.toString() : "";
 
-                    md = md + field + ": " + value + "\n";
+                    metadata += field + ": " + value + "\n";
                 }
             }
         } else {
-            md = "This file has no metadata.";
+            metadata = "This file has no metadata.";
         }
 
-        String controls = md;
+        String controls = metadata;
 
         JOptionPane.showMessageDialog(null, controls, "Open - Metadata", JOptionPane.INFORMATION_MESSAGE);
     }
