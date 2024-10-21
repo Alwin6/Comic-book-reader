@@ -76,7 +76,7 @@ public class ComicBookNhl {
                 }
             }
             ComicListManager comicListManager = new ComicListManager();
-            comicListManager.updateJSON(file.getName(), metadata);
+            comicListManager.updateJSON(file.getName(), metadata, file.getAbsolutePath());
 
             return pagesTemp;
         }

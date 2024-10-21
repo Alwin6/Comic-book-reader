@@ -4,6 +4,8 @@ import org.json.JSONTokener;
 
 import java.io.*;
 import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 
 public class ComicListManager {
@@ -21,7 +23,31 @@ public class ComicListManager {
         }
     }
 
-    public void updateJSON(String filename, JSONObject metadata) throws IOException {
+    public void updateMetadata(List<String> entries, String filename) throws IOException {
+        try (FileReader reader = LoadComicList()) {
+            JSONTokener tokener = new JSONTokener(reader);
+            JSONObject comicList = new JSONObject(tokener);
+
+            JSONObject thisComic = comicList.getJSONObject(filename);
+            JSONObject metadata = new JSONObject();
+            for (int i = 0; i < entries.size(); i+=2) {
+                if (!Objects.equals(entries.get(i), "")) {
+                    metadata.put(entries.get(i), entries.get(i + 1));
+                }
+            }
+            thisComic.remove("metadata");
+            thisComic.put("metadata", metadata);
+            comicList.remove(filename);
+            comicList.put(filename, thisComic);
+
+            try (FileWriter file = new FileWriter("ComicList.json")) {
+                file.write(comicList.toString(4));
+                file.flush();
+            }
+        }
+    }
+
+    public void updateJSON(String filename, JSONObject metadata, String path) throws IOException {
         try (FileReader reader = LoadComicList()) {
             JSONTokener tokener = new JSONTokener(reader);
             JSONObject comicList = new JSONObject(tokener);
@@ -52,6 +78,7 @@ public class ComicListManager {
             comicData.put("read", read);
             comicData.put("currentPage", currentPage);
             comicData.put("lastOpened", time);
+            comicData.put("path", path);
 
             comicList.put(filename, comicData);
 

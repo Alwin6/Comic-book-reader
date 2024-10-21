@@ -90,7 +90,7 @@ public class ComicBookRar {
             throw new IOException("Error reading RAR file", e);
         }
         ComicListManager comicListManager = new ComicListManager();
-        comicListManager.updateJSON(file.getName(), metadata);
+        comicListManager.updateJSON(file.getName(), metadata, file.getAbsolutePath());
 
         return images; // Return the list of images
     }

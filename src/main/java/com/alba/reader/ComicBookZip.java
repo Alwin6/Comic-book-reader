@@ -125,7 +125,7 @@ public class ComicBookZip {
             System.out.println("Finished processing images. Total images processed: " + images.size());
         }
 
-        updateComicList(file.getName(), new JSONObject(metadata));
+        updateComicList(file.getName(), new JSONObject(metadata), file.getAbsolutePath());
         long endTime = System.currentTimeMillis();
         System.out.println("Total time taken for unzipping: " + (endTime - startTime) + " ms");
         return images;
@@ -161,9 +161,9 @@ public class ComicBookZip {
         }
     }
 
-    private static void updateComicList(String fileName, JSONObject metadata) throws IOException {
+    private static void updateComicList(String fileName, JSONObject metadata, String path) throws IOException {
         ComicListManager comicListManager = new ComicListManager();
-        comicListManager.updateJSON(fileName, metadata);
+        comicListManager.updateJSON(fileName, metadata, path);
         System.out.println("Updated comic list JSON for: " + fileName);
     }
 }
