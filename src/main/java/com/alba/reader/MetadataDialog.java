@@ -1,12 +1,10 @@
 package com.alba.reader;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,88 +15,83 @@ public class MetadataDialog {
 
 
     public static void MetadataDialog(File file) {
-        JSONObject metadata;
+        JSONObject metadataObject;
 
         // Attempt to load the metadata from the current comic
-        ComicListManager cm = new ComicListManager();
+        ComicListManager comicListManager = new ComicListManager();
         try {
-            metadata = cm.getMetadata(file.getName());
+            metadataObject = comicListManager.getMetadata(file.getName());
         } catch (IOException e) {
-            metadata = new JSONObject();
+            metadataObject = new JSONObject();
         }
-        String md = "";
-        List<JTextField> f = new ArrayList<JTextField>();
+        String metadataString = "";
+        List<JTextField> textFields = new ArrayList<>();
 
         JPanel metadataPanel = new JPanel();
         metadataPanel.setLayout(new GridLayout(0, 2));
-        if (JSONObject.getNames(metadata) != null) {
+        if (JSONObject.getNames(metadataObject) != null) {
             // Certain files have an object and not metadata we can use
-            if (metadata.has("ComicInfo")) {
-                metadata = metadata.getJSONObject("ComicInfo");
+            if (metadataObject.has("ComicInfo")) {
+                metadataObject = metadataObject.getJSONObject("ComicInfo");
             }
 
             // Go through every field
-            String[] fields = JSONObject.getNames(metadata);
+            String[] fields = JSONObject.getNames(metadataObject);
             for (String field : fields) {
                 // Exclude xml specific fields that remain from conversion to JSON and get the value of each field as a string
                 if (!Objects.equals(field, "xmlns:xsd") & !Objects.equals(field, "xmlns:xsi")) {
-                    Object obj = metadata.opt(field);
+                    Object obj = metadataObject.opt(field);
                     String value = (obj != null && !JSONObject.NULL.equals(obj)) ? obj.toString() : "";
 
-                    md = md + field + ": " + value + "\n";
-                    f.add(new JTextField(field, 15));
-                    f.add(new JTextField(value, 15));
-
-
+                    metadataString = metadataString + field + ": " + value + "\n";
+                    textFields.add(new JTextField(field, 15));
+                    textFields.add(new JTextField(value, 15));
                 }
             }
 
-            for (JTextField field : f) {
+            for (JTextField field : textFields) {
                 metadataPanel.add(field);
             }
 
-
-
-
         } else {
-            JLabel l = new JLabel("This file has no metadata.");
-            metadataPanel.add(l);
-            JLabel h = new JLabel(" ");
-            metadataPanel.add(h);
+            JLabel noMetadata = new JLabel("This file has no metadata.");
+            metadataPanel.add(noMetadata);
+            JLabel emptySpace = new JLabel(" ");
+            metadataPanel.add(emptySpace);
         }
 
-        JButton Field = new JButton("Add Field");
-        metadataPanel.add(Field);
+        JButton addField = new JButton("Add Field");
+        metadataPanel.add(addField);
 
         JButton Save = new JButton("Save");
         Save.addActionListener(e -> {
-            List<String> entries = new ArrayList<String>();
-            for (JTextField field : f) {
+            List<String> entries = new ArrayList<>();
+            for (JTextField field : textFields) {
                 entries.add(field.getText());
             }
             try {
-                cm.updateMetadata(entries, file.getName());
+                comicListManager.updateMetadata(entries, file.getName());
 
             } catch (IOException ignored) {}
 
         });
-        Field.addActionListener(e -> {
+        addField.addActionListener(e -> {
 
-            metadataPanel.remove(Field);
+            metadataPanel.remove(addField);
             metadataPanel.remove(Save);
-            f.add(new JTextField("", 15));
-            metadataPanel.add(f.getLast());
-            f.add(new JTextField("", 15));
-            metadataPanel.add(f.getLast());
+            textFields.add(new JTextField("", 15));
+            metadataPanel.add(textFields.getLast());
+            textFields.add(new JTextField("", 15));
+            metadataPanel.add(textFields.getLast());
 
 
-            if (f.size() > 160) {
+            if (textFields.size() > 160) {
                 metadataPanel.setLayout(new GridLayout(0, 6));
-            } else if (f.size() > 80) {
+            } else if (textFields.size() > 80) {
                 metadataPanel.setLayout(new GridLayout(0, 4));
 
             }
-            metadataPanel.add(Field);
+            metadataPanel.add(addField);
             metadataPanel.add(Save);
 
 
@@ -108,7 +101,7 @@ public class MetadataDialog {
         });
         metadataPanel.add(Save);
 
-        String controls = md;
+        String controls = metadataString;
 
         JOptionPane.showMessageDialog(null, metadataPanel, "Open - Metadata", JOptionPane.PLAIN_MESSAGE);
     }

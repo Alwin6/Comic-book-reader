@@ -7,6 +7,9 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ComicReader extends JFrame {
     private ComicBook comicBook;
@@ -26,7 +29,8 @@ public class ComicReader extends JFrame {
     private static final float ZOOM_IN_LIMIT = 3.0f;
     private static final float ZOOM_OUT_LIMIT = 0.05f;
 
-    public ComicReader() {
+    public ComicReader() throws IOException {
+        LocalAppDataUtil.init();
         setupFrame();
         setupScrollPane();
         setupProgressBar();
@@ -37,6 +41,8 @@ public class ComicReader extends JFrame {
 
         toggleDarkMode();
         setVisible(true);
+        String dataFolder = System.getenv("LOCALAPPDATA");
+        System.out.println(dataFolder);
     }
 
     private void setupFrame() {
@@ -146,13 +152,18 @@ public class ComicReader extends JFrame {
         }
     }
 
+    public void openComicFile(File comicFile) {
+        currentComic = comicFile; // Set the current comic file
+        loadComicInBackground(comicFile); // Load the comic
+    }
+
     public File getCurrentComic() {
         return currentComic;
     }
 
-    private void loadComicInBackground(File file) {
+    public void loadComicInBackground(File comic) {
         progressBar.setVisible(true);
-        ComicLoader loader = new ComicLoader(file, progressBar);
+        ComicLoader loader = new ComicLoader(comic, progressBar);
         loader.loadComicInBackground();
 
         loader.getWorker().addPropertyChangeListener(evt -> {
@@ -313,6 +324,21 @@ public class ComicReader extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(ComicReader::new);
+        SwingUtilities.invokeLater(() -> {
+            ComicReader comicReader;
+            try {
+                comicReader = new ComicReader();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            // Sample comic data for testing
+            List<Comic> comics = new ArrayList<>();
+            comics.add(new Comic("The Flash", new ImageIcon("src/main/resources/reader/Assets/1.jpg"), "2024-10-01 10:00", 5, 20, "C:/Users/Alwin/Downloads/The Flash 013 (2024) (Webrip) (Pyrate-DCP).cbz"));
+            comics.add(new Comic("Galactus", new ImageIcon("src/main/resources/reader/Assets/2.jpg"), "2024-10-02 15:30", 10, 15, "C:/Users/Alwin/Downloads/Origin of Galactus v1 001 (1996-02).cbr"));
+            comics.add(new Comic("Pepper&Carrot", new ImageIcon("src/main/resources/reader/Assets/3.jpg"), "2024-10-03 12:00", 1, 30, "C:/Users/Alwin/Downloads/pepper&carrot_1.nhlcomic"));
+
+            // Show the ComicDisplay window with ComicReader
+            ComicDisplay.showComicDisplay(comics, comicReader);
+        });
     }
 }

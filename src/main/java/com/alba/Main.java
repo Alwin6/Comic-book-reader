@@ -8,6 +8,5 @@ public class Main {
     public static void main(String[] args){
         //com.alba.tracer.Scene.main(args);
         ComicReader.main(args);
-        //ComicDisplay.main(args);
     }
 }

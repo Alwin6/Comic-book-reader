@@ -7,7 +7,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-
 public class ComicListManager {
 
     public ComicListManager() {
@@ -89,7 +88,7 @@ public class ComicListManager {
         }
     }
 
-    private FileReader LoadComicList() throws IOException {
+    public FileReader LoadComicList() throws IOException {
         File file = new File("ComicList.json");
         if (!file.exists()) {
             try (FileWriter writer = new FileWriter(file)) {
