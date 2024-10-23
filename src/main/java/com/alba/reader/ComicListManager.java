@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+import static com.alba.reader.LocalAppDataUtil.*;
+
 public class ComicListManager {
 
     public ComicListManager() {
@@ -39,10 +41,7 @@ public class ComicListManager {
             comicList.remove(filename);
             comicList.put(filename, thisComic);
 
-            try (FileWriter file = new FileWriter("ComicList.json")) {
-                file.write(comicList.toString(4));
-                file.flush();
-            }
+            writeStringToFile("/Alba/ComicReader/ComicList.json", comicList.toString(4));
         }
     }
 
@@ -54,6 +53,8 @@ public class ComicListManager {
             boolean metadataEdited = false;
             boolean read = false;
             int currentPage = 0;
+            boolean favorite = false;
+            JSONObject annotations = new JSONObject();
 
             // Remove the entry of the current comic if it exists, this will add the current comic to the end
             // Please make sure to load comics from the comic list in reverse order
@@ -63,7 +64,8 @@ public class ComicListManager {
                 read = comicList.getJSONObject(filename).getBoolean("read");
                 currentPage = comicList.getJSONObject(filename).getInt("currentPage");
                 metadata = comicList.getJSONObject(filename).getJSONObject("metadata");
-
+                favorite = comicList.getJSONObject(filename).getBoolean("favorite");
+                annotations = comicList.getJSONObject(filename).getJSONObject("annotations");
                 comicList.remove(filename);
             }
 
@@ -78,24 +80,21 @@ public class ComicListManager {
             comicData.put("currentPage", currentPage);
             comicData.put("lastOpened", time);
             comicData.put("path", path);
+            comicData.put("favorite", favorite);
+            comicData.put("annotations", annotations);
 
             comicList.put(filename, comicData);
 
-            try (FileWriter file = new FileWriter("ComicList.json")) {
-                file.write(comicList.toString(4));
-                file.flush();
-            }
+            writeStringToFile("/Alba/ComicReader/ComicList.json", comicList.toString(4));
         }
     }
 
     public FileReader LoadComicList() throws IOException {
-        File file = new File("ComicList.json");
-        if (!file.exists()) {
-            try (FileWriter writer = new FileWriter(file)) {
-                writer.write("{}");
-                writer.flush();
-            }
+        createFileInLocalAppData("ComicList.json", "/Alba/ComicReader");
+        File comicL = readFromFile("ComicList.json", "/Alba/ComicReader");
+        if (comicL.length() == 0) {
+            writeStringToFile("/Alba/ComicReader/ComicList.json", "{}");
         }
-        return new FileReader(file);
+        return new FileReader(readFromFile("ComicList.json", "/Alba/ComicReader"));
     }
 }

@@ -12,10 +12,18 @@ import java.util.Objects;
 
 public class MetadataDialog {
 
-
-
     public static void MetadataDialog(File file) {
+
         JSONObject metadataObject;
+
+        JSONObject lang;
+        try {
+            lang = LanguageManager.LoadLanguage();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        JSONObject metadata;
+
 
         // Attempt to load the metadata from the current comic
         ComicListManager comicListManager = new ComicListManager();
@@ -54,16 +62,18 @@ public class MetadataDialog {
             }
 
         } else {
-            JLabel noMetadata = new JLabel("This file has no metadata.");
-            metadataPanel.add(noMetadata);
-            JLabel emptySpace = new JLabel(" ");
-            metadataPanel.add(emptySpace);
+            JLabel l = new JLabel(lang.getString("noMetadata"));
+            metadataPanel.add(l);
+            JLabel h = new JLabel(" ");
+            metadataPanel.add(h);
         }
 
-        JButton addField = new JButton("Add Field");
+
+
+        JButton addField = new JButton(lang.getString("addField"));
         metadataPanel.add(addField);
 
-        JButton Save = new JButton("Save");
+        JButton Save = new JButton(lang.getString("save"));
         Save.addActionListener(e -> {
             List<String> entries = new ArrayList<>();
             for (JTextField field : textFields) {
@@ -96,13 +106,13 @@ public class MetadataDialog {
 
 
             JOptionPane.getRootFrame().dispose();
-            JOptionPane.showMessageDialog(null, metadataPanel, "Open - Metadata", JOptionPane.PLAIN_MESSAGE);
+            JOptionPane.showMessageDialog(null, metadataPanel, lang.getString("openMetadataTitle"), JOptionPane.PLAIN_MESSAGE);
 
         });
         metadataPanel.add(Save);
 
         String controls = metadataString;
 
-        JOptionPane.showMessageDialog(null, metadataPanel, "Open - Metadata", JOptionPane.PLAIN_MESSAGE);
+        JOptionPane.showMessageDialog(null, metadataPanel, lang.getString("openMetadataTitle"), JOptionPane.PLAIN_MESSAGE);
     }
 }

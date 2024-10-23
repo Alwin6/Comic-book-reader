@@ -1,15 +1,24 @@
 package com.alba.reader;
 
+import org.json.JSONObject;
+
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
 
 public class HelpMenu {
 
     private JMenu helpMenu;
 
     public HelpMenu() {
-        helpMenu = new JMenu("Help");
-        JMenuItem controlsItem = new JMenuItem("Controls");
+        JSONObject lang;
+        try {
+            lang = LanguageManager.LoadLanguage();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        helpMenu = new JMenu(lang.getString("help"));
+        JMenuItem controlsItem = new JMenuItem(lang.getString("controls"));
 
         controlsItem.addActionListener(this::showControlsDialog);
         helpMenu.add(controlsItem);
@@ -20,18 +29,14 @@ public class HelpMenu {
     }
 
     private void showControlsDialog(ActionEvent e) {
-        String controls = """
-                Left Arrow: Previous Page
-                Right Arrow: Next Page
-                Up Arrow: Scroll Up
-                Down Arrow: Scroll Down
-                Mouse Wheel: Scroll Up/Down
-                Control + Plus: Zoom In
-                Control + Minus: Zoom Out
-                Control + Mouse Wheel: Zoom In/Out
-                P: Open Page Selection, Hit Enter To Go To Page
-                """;
+        JSONObject lang;
+        try {
+            lang = LanguageManager.LoadLanguage();
+        } catch (IOException f) {
+            throw new RuntimeException(f);
+        }
+        String controls = lang.getString("controlsBody");
 
-        JOptionPane.showMessageDialog(null, controls, "Help - Controls", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(null, controls, lang.getString("helpControls"), JOptionPane.INFORMATION_MESSAGE);
     }
 }

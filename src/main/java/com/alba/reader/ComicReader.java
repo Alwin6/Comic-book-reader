@@ -1,15 +1,22 @@
 package com.alba.reader;
 
 import com.formdev.flatlaf.*;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.awt.image.BufferedImage;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.alba.reader.LocalAppDataUtil.readFromFile;
+import static com.alba.reader.LocalAppDataUtil.writeStringToFile;
+
 
 public class ComicReader extends JFrame {
     private ComicBook comicBook;
@@ -31,7 +38,27 @@ public class ComicReader extends JFrame {
 
     public ComicReader() throws IOException {
         LocalAppDataUtil.init();
-        setupFrame();
+
+        JSONObject lang;
+        File settingsFile = null;
+        FileReader reader;
+        JSONObject settings = null;
+        try {
+
+            try {
+                settingsFile = readFromFile("Settings.json", "/Alba/ComicReader");
+                reader = new FileReader(settingsFile);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+            JSONTokener tokener = new JSONTokener(reader);
+            settings = new JSONObject(tokener);
+            lang = LanguageManager.LoadLanguage();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        setupFrame(lang);
         setupScrollPane();
         setupProgressBar();
         //setupButtons(); work in progress
@@ -39,14 +66,15 @@ public class ComicReader extends JFrame {
         setupKeyBindings();
         setupMouseWheelZoom();
 
-        toggleDarkMode();
+
+        toggleDarkMode(settings.getBoolean("darkMode"));
         setVisible(true);
         String dataFolder = System.getenv("LOCALAPPDATA");
         System.out.println(dataFolder);
     }
 
-    private void setupFrame() {
-        setTitle("Comic Reader");
+    private void setupFrame(JSONObject lang) {
+        setTitle(lang.optString("comicReader"));
         setSize(1280, 720);
         setExtendedState(Frame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -135,6 +163,12 @@ public class ComicReader extends JFrame {
     }
 
     public void openComic() {
+        JSONObject lang;
+        try {
+            lang = LanguageManager.LoadLanguage();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         // Clear the current comic and its resources
         if (comicBook != null) {
             comicBook = null; // Clear reference to the current comic
@@ -145,7 +179,7 @@ public class ComicReader extends JFrame {
         }
 
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("CBZ, CBR And Nhl files", "cbz", "cbr", "nhlcomic"));
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(lang.getString("fileChooserDescription"), "cbz", "cbr", "nhlcomic"));
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             currentComic = fileChooser.getSelectedFile();
             loadComicInBackground(currentComic);
@@ -161,7 +195,14 @@ public class ComicReader extends JFrame {
         return currentComic;
     }
 
-    public void loadComicInBackground(File comic) {
+
+    private void loadComicInBackground(File comic) {
+        JSONObject lang;
+        try {
+            lang = LanguageManager.LoadLanguage();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         progressBar.setVisible(true);
         ComicLoader loader = new ComicLoader(comic, progressBar);
         loader.loadComicInBackground();
@@ -175,7 +216,7 @@ public class ComicReader extends JFrame {
                     showPage(currentPageIndex);
                     progressBar.setVisible(false);
                 } catch (Exception e) {
-                    showError("Error loading comic: " + e.getMessage());
+                    showError(lang.getString("loadingComicWithMessage") + e.getMessage());
                     progressBar.setVisible(false);
                 }
             }
@@ -183,8 +224,14 @@ public class ComicReader extends JFrame {
     }
 
     private void showPage(int index) {
+        JSONObject lang;
+        try {
+            lang = LanguageManager.LoadLanguage();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         if (comicBook == null || index < 0 || index >= comicBook.getPageCount()) {
-            showError("Error loading comic");
+            showError(lang.getString("loadingComic"));
             return;
         }
         currentPageIndex = index;
@@ -199,10 +246,16 @@ public class ComicReader extends JFrame {
     }
 
     private void updateImage(ComicPage page) {
+        JSONObject lang;
+        try {
+            lang = LanguageManager.LoadLanguage();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         // Check if the page image is null, if so exit
         BufferedImage image = page.getImage();
         if (image == null) {
-            showError("Image not available for this page.");
+            showError(lang.getString("unavailableImageError"));
         }
 
         // Calculate a relative minimum change threshold
@@ -220,7 +273,7 @@ public class ComicReader extends JFrame {
 
         // Set the icon to the cached image
         imageLabel.setIcon(new ImageIcon(cachedImage));
-        setTitle(comicBook.getTitle() + " - Page " + (currentPageIndex + 1) + "/" + comicBook.getPageCount());
+        setTitle(comicBook.getTitle() + lang.getString("pageCount") + (currentPageIndex + 1) + "/" + comicBook.getPageCount());
         scrollPane.getVerticalScrollBar().setValue(0);
     }
 
@@ -237,10 +290,16 @@ public class ComicReader extends JFrame {
     }
 
     private void promptForPage() {
-        JDialog dialog = new JDialog(this, "Go to Page", true);
+        JSONObject lang;
+        try {
+            lang = LanguageManager.LoadLanguage();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        JDialog dialog = new JDialog(this, lang.getString("pagePrompt"), true);
         JTextField pageNumberField = new JTextField(5);
-        JButton okButton = new JButton("OK");
-        JButton cancelButton = new JButton("Cancel");
+        JButton okButton = new JButton(lang.getString("ok"));
+        JButton cancelButton = new JButton(lang.getString("cancel"));
 
         okButton.addActionListener(e -> {
             goToPage(pageNumberField);
@@ -257,7 +316,7 @@ public class ComicReader extends JFrame {
 
         // Set up the dialog layout
         dialog.setLayout(new FlowLayout());
-        dialog.add(new JLabel("Enter page number:"));
+        dialog.add(new JLabel(lang.getString("pagePromptText")));
         dialog.add(pageNumberField);
         dialog.add(okButton);
         dialog.add(cancelButton);
@@ -270,15 +329,21 @@ public class ComicReader extends JFrame {
     }
 
     private void goToPage(JTextField pageNumberField) {
+        JSONObject lang;
+        try {
+            lang = LanguageManager.LoadLanguage();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         try {
             int pageNumber = Integer.parseInt(pageNumberField.getText());
             if (pageNumber > 0 && pageNumber <= comicBook.getPageCount()) {
                 showPage(pageNumber - 1);
             } else {
-                showError("Page number out of range.");
+                showError(lang.getString("pageNumberOutOfRange"));
             }
         } catch (NumberFormatException ex) {
-            showError("Please enter a valid page number.");
+            showError(lang.getString("invalidPageNumber"));
         }
     }
 
@@ -316,11 +381,44 @@ public class ComicReader extends JFrame {
         } else {
             FlatLightLaf.setup();
         }
+
+        File settingsFile = null;
+        FileReader reader;
+        try {
+            settingsFile = readFromFile("Settings.json", "/Alba/ComicReader");
+            reader = new FileReader(settingsFile);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        JSONTokener tokener = new JSONTokener(reader);
+        JSONObject settings = new JSONObject(tokener);
+        settings.remove("darkMode");
+        settings.put("darkMode", FlatLaf.isLafDark());
+        try {
+            writeStringToFile("/Alba/ComicReader/Settings.json", settings.toString(4));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        FlatLaf.updateUI();
+    }
+
+    public void toggleDarkMode(boolean mode) {
+        if (mode) {
+            FlatDarkLaf.setup();
+        } else {
+            FlatLightLaf.setup();
+        }
         FlatLaf.updateUI();
     }
 
     private void showError(String message) {
-        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
+        JSONObject lang;
+        try {
+            lang = LanguageManager.LoadLanguage();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        JOptionPane.showMessageDialog(this, message, lang.getString("error"), JOptionPane.ERROR_MESSAGE);
     }
 
     public static void main(String[] args) {
