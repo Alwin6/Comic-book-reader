@@ -114,25 +114,8 @@ public class LocalAppDataUtil {
         }
     }
 
-
     public static List<String> listDirectoryContents(String dirName, String targetPath) throws IOException {
-        File dir = new File(LOCAL_APP_DATA + targetPath, dirName);
-        if (!dir.exists() || !dir.isDirectory()) {
-            throw new IOException("Directory does not exist: " + dir.getAbsolutePath());
-        }
-        List<String> contents = new ArrayList<>();
-        Files.list(dir.toPath()).forEach(path -> contents.add(path.getFileName().toString()));
-        return contents;
-    }
-
-    public static List<String> listDirectoryContentsNotFromLocalAppData(String dirName, String targetPath) throws IOException {
-        File dir = new File(targetPath, dirName);
-        if (!dir.exists() || !dir.isDirectory()) {
-            throw new IOException("Directory does not exist: " + dir.getAbsolutePath());
-        }
-        List<String> contents = new ArrayList<>();
-        Files.list(dir.toPath()).forEach(path -> contents.add(path.getFileName().toString()));
-        return contents;
+        return FileTools.listDirectoryContents(dirName, LOCAL_APP_DATA + targetPath);
     }
 
     public static void init() throws IOException {
@@ -152,7 +135,7 @@ public class LocalAppDataUtil {
         }
 
         createDirectoryInLocalAppData("Lang", "/Alba/ComicReader");
-        List<String> languages = listDirectoryContentsNotFromLocalAppData("Lang", "src/main/resources/reader");
+        List<String> languages = FileTools.listDirectoryContents("Lang", "src/main/resources/reader");
         for (String language : languages) {
             copyToLocalAppData("src/main/resources/reader/Lang/" + language, "/Alba/ComicReader/Lang");
         }
