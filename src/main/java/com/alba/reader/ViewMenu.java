@@ -15,9 +15,10 @@ import static com.alba.reader.LocalAppDataUtil.*;
 
 public class ViewMenu {
     private JMenu viewMenu;
+    private JSONObject lang;
 
     public ViewMenu(ComicReader comicReader) {
-        JSONObject lang;
+
         try {
             lang = LanguageManager.LoadLanguage();
         } catch (IOException e) {
@@ -56,12 +57,6 @@ public class ViewMenu {
 
 
     private void showLanguageDialog(ActionEvent e) {
-        JSONObject lang;
-        try {
-            lang = LanguageManager.LoadLanguage();
-        } catch (IOException f) {
-            throw new RuntimeException(f);
-        }
         JPanel panel = new JPanel();
         String controls = lang.getString("selectLanguage");
         JLabel label = new JLabel(controls);

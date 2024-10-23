@@ -9,9 +9,10 @@ import java.io.IOException;
 public class HelpMenu {
 
     private JMenu helpMenu;
+    private JSONObject lang;
 
     public HelpMenu() {
-        JSONObject lang;
+
         try {
             lang = LanguageManager.LoadLanguage();
         } catch (IOException e) {
@@ -29,12 +30,6 @@ public class HelpMenu {
     }
 
     private void showControlsDialog(ActionEvent e) {
-        JSONObject lang;
-        try {
-            lang = LanguageManager.LoadLanguage();
-        } catch (IOException f) {
-            throw new RuntimeException(f);
-        }
         String controls = lang.getString("controlsBody");
 
         JOptionPane.showMessageDialog(null, controls, lang.getString("helpControls"), JOptionPane.INFORMATION_MESSAGE);

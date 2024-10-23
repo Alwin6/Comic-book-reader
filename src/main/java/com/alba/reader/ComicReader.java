@@ -35,11 +35,12 @@ public class ComicReader extends JFrame {
     private float lastZoomFactor = 1.0f;
     private static final float ZOOM_IN_LIMIT = 3.0f;
     private static final float ZOOM_OUT_LIMIT = 0.05f;
+    private JSONObject lang;
 
     public ComicReader() throws IOException {
         LocalAppDataUtil.init();
 
-        JSONObject lang;
+
         File settingsFile = null;
         FileReader reader;
         JSONObject settings = null;
@@ -163,12 +164,6 @@ public class ComicReader extends JFrame {
     }
 
     public void openComic() {
-        JSONObject lang;
-        try {
-            lang = LanguageManager.LoadLanguage();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         // Clear the current comic and its resources
         if (comicBook != null) {
             comicBook = null; // Clear reference to the current comic
@@ -197,12 +192,6 @@ public class ComicReader extends JFrame {
 
 
     private void loadComicInBackground(File comic) {
-        JSONObject lang;
-        try {
-            lang = LanguageManager.LoadLanguage();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         progressBar.setVisible(true);
         ComicLoader loader = new ComicLoader(comic, progressBar);
         loader.loadComicInBackground();
@@ -224,12 +213,6 @@ public class ComicReader extends JFrame {
     }
 
     private void showPage(int index) {
-        JSONObject lang;
-        try {
-            lang = LanguageManager.LoadLanguage();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         if (comicBook == null || index < 0 || index >= comicBook.getPageCount()) {
             showError(lang.getString("loadingComic"));
             return;
@@ -246,12 +229,6 @@ public class ComicReader extends JFrame {
     }
 
     private void updateImage(ComicPage page) {
-        JSONObject lang;
-        try {
-            lang = LanguageManager.LoadLanguage();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         // Check if the page image is null, if so exit
         BufferedImage image = page.getImage();
         if (image == null) {
@@ -290,12 +267,6 @@ public class ComicReader extends JFrame {
     }
 
     private void promptForPage() {
-        JSONObject lang;
-        try {
-            lang = LanguageManager.LoadLanguage();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         JDialog dialog = new JDialog(this, lang.getString("pagePrompt"), true);
         JTextField pageNumberField = new JTextField(5);
         JButton okButton = new JButton(lang.getString("ok"));
@@ -329,12 +300,6 @@ public class ComicReader extends JFrame {
     }
 
     private void goToPage(JTextField pageNumberField) {
-        JSONObject lang;
-        try {
-            lang = LanguageManager.LoadLanguage();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         try {
             int pageNumber = Integer.parseInt(pageNumberField.getText());
             if (pageNumber > 0 && pageNumber <= comicBook.getPageCount()) {
@@ -412,12 +377,6 @@ public class ComicReader extends JFrame {
     }
 
     private void showError(String message) {
-        JSONObject lang;
-        try {
-            lang = LanguageManager.LoadLanguage();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         JOptionPane.showMessageDialog(this, message, lang.getString("error"), JOptionPane.ERROR_MESSAGE);
     }
 
