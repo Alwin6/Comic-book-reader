@@ -1,20 +1,22 @@
 package com.alba.reader;
 
+import com.alba.tracer.Scene;
 import com.formdev.flatlaf.*;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.awt.image.BufferedImage;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-import static com.alba.reader.LocalAppDataUtil.readFromFile;
+import static com.alba.reader.LocalAppDataUtil.getFile;
 import static com.alba.reader.LocalAppDataUtil.writeStringToFile;
 
 
@@ -41,13 +43,13 @@ public class ComicReader extends JFrame {
         LocalAppDataUtil.init();
 
 
-        File settingsFile = null;
+        File settingsFile;
         FileReader reader;
-        JSONObject settings = null;
+        JSONObject settings;
         try {
 
             try {
-                settingsFile = readFromFile("Settings.json", "/Alba/ComicReader");
+                settingsFile = getFile("Settings.json", "/Alba/ComicReader");
                 reader = new FileReader(settingsFile);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
@@ -174,7 +176,7 @@ public class ComicReader extends JFrame {
         }
 
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(lang.getString("fileChooserDescription"), "cbz", "cbr", "nhlcomic"));
+        fileChooser.setFileFilter(new FileNameExtensionFilter(lang.getString("fileChooserDescription"), "cbz", "cbr", "nhlcomic"));
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             currentComic = fileChooser.getSelectedFile();
             loadComicInBackground(currentComic);
@@ -301,6 +303,10 @@ public class ComicReader extends JFrame {
 
     private void goToPage(JTextField pageNumberField) {
         try {
+            if(Objects.equals(pageNumberField.getText(), "tracer")) {
+                Scene.init();
+                return;
+            }
             int pageNumber = Integer.parseInt(pageNumberField.getText());
             if (pageNumber > 0 && pageNumber <= comicBook.getPageCount()) {
                 showPage(pageNumber - 1);
@@ -347,10 +353,10 @@ public class ComicReader extends JFrame {
             FlatLightLaf.setup();
         }
 
-        File settingsFile = null;
+        File settingsFile;
         FileReader reader;
         try {
-            settingsFile = readFromFile("Settings.json", "/Alba/ComicReader");
+            settingsFile = getFile("Settings.json", "/Alba/ComicReader");
             reader = new FileReader(settingsFile);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
@@ -388,13 +394,14 @@ public class ComicReader extends JFrame {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            // Sample comic data for testing
-            List<Comic> comics = new ArrayList<>();
-            comics.add(new Comic("The Flash", new ImageIcon("src/main/resources/reader/Assets/1.jpg"), "2024-10-01 10:00", 5, 20, "C:/Users/Alwin/Downloads/The Flash 013 (2024) (Webrip) (Pyrate-DCP).cbz"));
-            comics.add(new Comic("Galactus", new ImageIcon("src/main/resources/reader/Assets/2.jpg"), "2024-10-02 15:30", 10, 15, "C:/Users/Alwin/Downloads/Origin of Galactus v1 001 (1996-02).cbr"));
-            comics.add(new Comic("Pepper&Carrot", new ImageIcon("src/main/resources/reader/Assets/3.jpg"), "2024-10-03 12:00", 1, 30, "C:/Users/Alwin/Downloads/pepper&carrot_1.nhlcomic"));
 
             // Show the ComicDisplay window with ComicReader
+            List<Comic> comics;
+            try {
+                comics = ComicDisplay.parseComics();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             ComicDisplay.showComicDisplay(comics, comicReader);
         });
     }

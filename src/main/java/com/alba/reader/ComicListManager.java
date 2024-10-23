@@ -91,10 +91,10 @@ public class ComicListManager {
 
     public FileReader LoadComicList() throws IOException {
         createFileInLocalAppData("ComicList.json", "/Alba/ComicReader");
-        File comicL = readFromFile("ComicList.json", "/Alba/ComicReader");
+        File comicL = getFile("ComicList.json", "/Alba/ComicReader");
         if (comicL.length() == 0) {
             writeStringToFile("/Alba/ComicReader/ComicList.json", "{}");
         }
-        return new FileReader(readFromFile("ComicList.json", "/Alba/ComicReader"));
+        return new FileReader(getFile("ComicList.json", "/Alba/ComicReader"));
     }
 }

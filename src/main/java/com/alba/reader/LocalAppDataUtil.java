@@ -89,7 +89,7 @@ public class LocalAppDataUtil {
         }
     }
 
-    public static File readFromFile(String fileName, String targetPath) throws IOException {
+    public static File getFile(String fileName, String targetPath) throws IOException {
         File file = new File(LOCAL_APP_DATA + targetPath, fileName);
         if (!file.exists()) {
             throw new IOException("File does not exist: " + file.getAbsolutePath());
@@ -97,7 +97,7 @@ public class LocalAppDataUtil {
         return file;
     }
 
-    public static void writeToFile(String targetFilePath, File sourceFile) throws IOException {
+    public static void writeFile(String targetFilePath, File sourceFile) throws IOException {
         File targetFile = new File(targetFilePath);
         if (!sourceFile.exists()) {
             throw new IOException("Source file does not exist: " + sourceFile.getAbsolutePath());
@@ -124,7 +124,7 @@ public class LocalAppDataUtil {
         createDirectoryInLocalAppData("ComicReader", "/Alba");
 
         createFileInLocalAppData("Settings.json", "/Alba/ComicReader");
-        File settings = readFromFile("Settings.json", "/Alba/ComicReader");
+        File settings = getFile("Settings.json", "/Alba/ComicReader");
         if (settings.length() == 0) {
             writeStringToFile("/Alba/ComicReader/Settings.json", """
                     {

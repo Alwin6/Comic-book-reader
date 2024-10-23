@@ -893,7 +893,7 @@ public class Scene extends JPanel implements KeyListener {
         }
     }
 
-    public static void main(String[] args) {
+    public static void init() {
         Shape[] shapes = {
                    new Shape("sphere", new Vector3(0, -2, 3), new Vector3(2, 1, .2), new Vector3(30, 90,20),
                    new ObjectProperties(new Vector3(1, 0, 1), 2, .1, .3, .4, .3, new Texture("bricks.jpg"))),
@@ -916,7 +916,7 @@ public class Scene extends JPanel implements KeyListener {
         scene.render();
 
         JFrame frame = new JFrame("GPTracer");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Only close this window
         frame.setSize(656, 399);
         frame.add(scene);
 

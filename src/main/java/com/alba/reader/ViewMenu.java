@@ -77,7 +77,7 @@ public class ViewMenu {
         File settingsFile = null;
         FileReader reader;
         try {
-            settingsFile = readFromFile("Settings.json", "/Alba/ComicReader");
+            settingsFile = getFile("Settings.json", "/Alba/ComicReader");
             reader = new FileReader(settingsFile);
         } catch (IOException ex) {
             throw new RuntimeException(ex);

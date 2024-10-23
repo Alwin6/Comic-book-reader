@@ -5,18 +5,18 @@ import org.json.JSONTokener;
 
 import java.io.*;
 
-import static com.alba.reader.LocalAppDataUtil.readFromFile;
+import static com.alba.reader.LocalAppDataUtil.getFile;
 
 public class LanguageManager {
     public static JSONObject LoadLanguage() throws IOException {
         File file;
         try {
-            File settingsFile = readFromFile("Settings.json", "/Alba/ComicReader");
+            File settingsFile = getFile("Settings.json", "/Alba/ComicReader");
             FileReader reader = new FileReader(settingsFile);
             JSONTokener tokener = new JSONTokener(reader);
             JSONObject settings = new JSONObject(tokener);
 
-            file = readFromFile(settings.getString("language") + ".json", "/Alba/ComicReader/Lang");
+            file = getFile(settings.getString("language") + ".json", "/Alba/ComicReader/Lang");
         } catch (IOException e) {
             file = new File("src/main/resources/reader/Lang/English.json");
         }
