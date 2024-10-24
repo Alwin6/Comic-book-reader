@@ -894,6 +894,11 @@ public class Scene extends JPanel implements KeyListener {
     }
 
     public static void init() {
+
+        try {
+            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+        } catch (Exception ignore) {}
+
         Shape[] shapes = {
                    new Shape("sphere", new Vector3(0, -2, 3), new Vector3(2, 1, .2), new Vector3(30, 90,20),
                    new ObjectProperties(new Vector3(1, 0, 1), 2, .1, .3, .4, .3, new Texture("bricks.jpg"))),

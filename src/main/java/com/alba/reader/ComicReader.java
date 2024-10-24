@@ -304,6 +304,10 @@ public class ComicReader extends JFrame {
     private void goToPage(JTextField pageNumberField) {
         try {
             if(Objects.equals(pageNumberField.getText(), "tracer")) {
+                Window[] windows = ComicReader.getWindows();
+                for (Window window : windows) {
+                    window.dispose();
+                }
                 Scene.init();
                 return;
             }
