@@ -8,8 +8,8 @@ import java.io.IOException;
 
 public class HelpMenu {
 
-    private JMenu helpMenu;
-    private JSONObject lang;
+    private final JMenu helpMenu;
+    private final JSONObject lang;
 
     public HelpMenu() {
 

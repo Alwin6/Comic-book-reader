@@ -1,21 +1,18 @@
 package com.alba.reader;
 
 import org.json.JSONObject;
-import org.json.JSONTokener;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 
 import static com.alba.reader.LocalAppDataUtil.*;
 
 public class ViewMenu {
-    private JMenu viewMenu;
-    private JSONObject lang;
+    private final JMenu viewMenu;
+    private final JSONObject lang;
 
     public ViewMenu(ComicReader comicReader) {
 
@@ -74,32 +71,21 @@ public class ViewMenu {
             picker.addItem(language.substring(0, language.length() - 5));
         }
 
-        File settingsFile = null;
-        FileReader reader;
-        try {
-            settingsFile = getFile("Settings.json", "/Alba/ComicReader");
-            reader = new FileReader(settingsFile);
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-        JSONTokener tokener = new JSONTokener(reader);
-        JSONObject settings = new JSONObject(tokener);
+        JSONObject settings = LocalAppDataUtil.getSettingsObject();
         picker.setSelectedItem(settings.getString("language"));
 
 
         saveButton.addActionListener(g -> {
             try {
-                settings.remove("langauge");
+                settings.remove("language");
                 settings.put("language", picker.getSelectedItem());
                 writeStringToFile("/Alba/ComicReader/Settings.json", settings.toString(4));
                 Window[] windows = ComicReader.getWindows();
                 for (Window window : windows) {
                     window.dispose();
                 }
-                ComicReader.main(null);
-                SwingUtilities.invokeLater(() -> {
-                    showLanguageDialog(null);
-                });
+                ComicReader.init();
+                SwingUtilities.invokeLater(() -> showLanguageDialog(null));
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }

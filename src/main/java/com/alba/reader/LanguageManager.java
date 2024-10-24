@@ -13,8 +13,8 @@ public class LanguageManager {
         try {
             File settingsFile = getFile("Settings.json", "/Alba/ComicReader");
             FileReader reader = new FileReader(settingsFile);
-            JSONTokener tokener = new JSONTokener(reader);
-            JSONObject settings = new JSONObject(tokener);
+            JSONTokener jsonTokener = new JSONTokener(reader);
+            JSONObject settings = new JSONObject(jsonTokener);
 
             file = getFile(settings.getString("language") + ".json", "/Alba/ComicReader/Lang");
         } catch (IOException e) {
@@ -22,7 +22,7 @@ public class LanguageManager {
         }
 
         // Wait until the file is no longer locked
-        while (!isFileAvailable(file)) {
+        while (!FileTools.isFileAvailable(file)) {
             try {
                 Thread.sleep(100);  // Small delay before retrying
             } catch (InterruptedException e) {
@@ -31,17 +31,8 @@ public class LanguageManager {
         }
 
         try (FileReader reader = new FileReader(file)) {
-            JSONTokener tokener = new JSONTokener(reader);
-            return new JSONObject(tokener);
+            JSONTokener jsonTokener = new JSONTokener(reader);
+            return new JSONObject(jsonTokener);
         }
     }
-
-    private static boolean isFileAvailable(File file) {
-        try (FileInputStream fis = new FileInputStream(file)) {
-            return true;  // File can be opened and is not locked
-        } catch (IOException e) {
-            return false; // File is locked
-        }
-    }
-
 }

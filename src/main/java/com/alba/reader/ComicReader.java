@@ -22,14 +22,14 @@ import static com.alba.reader.LocalAppDataUtil.writeStringToFile;
 
 public class ComicReader extends JFrame {
     private ComicBook comicBook;
-    private JLabel imageLabel = new JLabel();
-    private JScrollPane scrollPane = new JScrollPane(imageLabel);
-    private JProgressBar progressBar = new JProgressBar();
-    private JPanel buttonPanel = new JPanel();
-    private HelpMenu helpMenu = new HelpMenu();
-    private ViewMenu viewMenu = new ViewMenu(this);
-    private OpenMenu openMenu = new OpenMenu(this);
-    private JMenuBar menuBar = new JMenuBar();
+    private final JLabel imageLabel = new JLabel();
+    private final JScrollPane scrollPane = new JScrollPane(imageLabel);
+    private final JProgressBar progressBar = new JProgressBar();
+    private final JPanel buttonPanel = new JPanel();
+    private final HelpMenu helpMenu = new HelpMenu();
+    private final ViewMenu viewMenu = new ViewMenu(this);
+    private final OpenMenu openMenu = new OpenMenu(this);
+    private final JMenuBar menuBar = new JMenuBar();
     private File currentComic;
     private BufferedImage cachedImage;
     private int currentPageIndex = 0;
@@ -37,7 +37,7 @@ public class ComicReader extends JFrame {
     private float lastZoomFactor = 1.0f;
     private static final float ZOOM_IN_LIMIT = 3.0f;
     private static final float ZOOM_OUT_LIMIT = 0.05f;
-    private JSONObject lang;
+    private final JSONObject lang;
 
     public ComicReader() throws IOException {
         LocalAppDataUtil.init();
@@ -54,8 +54,8 @@ public class ComicReader extends JFrame {
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
-            JSONTokener tokener = new JSONTokener(reader);
-            settings = new JSONObject(tokener);
+            JSONTokener jsonTokener = new JSONTokener(reader);
+            settings = new JSONObject(jsonTokener);
             lang = LanguageManager.LoadLanguage();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -72,8 +72,6 @@ public class ComicReader extends JFrame {
 
         toggleDarkMode(settings.getBoolean("darkMode"));
         setVisible(true);
-        String dataFolder = System.getenv("LOCALAPPDATA");
-        System.out.println(dataFolder);
     }
 
     private void setupFrame(JSONObject lang) {
@@ -206,8 +204,9 @@ public class ComicReader extends JFrame {
                     zoomFactor = 1.0f; // Reset zoom
                     showPage(currentPageIndex);
                     progressBar.setVisible(false);
+                    fillWidth();
                 } catch (Exception e) {
-                    showError(lang.getString("loadingComicWithMessage") + e.getMessage());
+                    showError(lang.getString("loadingErrorWithMessage") + e.getMessage());
                     progressBar.setVisible(false);
                 }
             }
@@ -215,14 +214,17 @@ public class ComicReader extends JFrame {
     }
 
     private void showPage(int index) {
-        if (comicBook == null || index < 0 || index >= comicBook.getPageCount()) {
+        if (comicBook == null) {
             showError(lang.getString("loadingError"));
+            return;
+        }
+        if (index < 0 || index >= comicBook.getPageCount()){
             return;
         }
         currentPageIndex = index;
         ComicPage page = comicBook.getPage(currentPageIndex);
 
-        if (page.getImage() == null) {
+        if (page.image() == null) {
             showPage(currentPageIndex + 1);
         } else {
             cachedImage = null;
@@ -232,9 +234,10 @@ public class ComicReader extends JFrame {
 
     private void updateImage(ComicPage page) {
         // Check if the page image is null, if so exit
-        BufferedImage image = page.getImage();
+        BufferedImage image = page.image();
         if (image == null) {
             showError(lang.getString("unavailableImageError"));
+            return;
         }
 
         // Calculate a relative minimum change threshold
@@ -243,7 +246,6 @@ public class ComicReader extends JFrame {
         // Scale the image only if the zoom factor has changed significantly
         if (Math.abs(zoomFactor - lastZoomFactor) >= relativeThreshold) {
             cachedImage = scaleImage(image, zoomFactor);
-            System.out.println(zoomFactor);
             lastZoomFactor = zoomFactor; // Update lastZoomFactor
         } else if (cachedImage == null) {
             // If no significant change, but cachedImage is null, create the initial cached image
@@ -252,7 +254,7 @@ public class ComicReader extends JFrame {
 
         // Set the icon to the cached image
         imageLabel.setIcon(new ImageIcon(cachedImage));
-        setTitle(comicBook.getTitle() + lang.getString("pageCount") + (currentPageIndex + 1) + "/" + comicBook.getPageCount());
+        setTitle(comicBook.title() + lang.getString("pageCount") + (currentPageIndex + 1) + "/" + comicBook.getPageCount());
         scrollPane.getVerticalScrollBar().setValue(0);
     }
 
@@ -357,16 +359,7 @@ public class ComicReader extends JFrame {
             FlatLightLaf.setup();
         }
 
-        File settingsFile;
-        FileReader reader;
-        try {
-            settingsFile = getFile("Settings.json", "/Alba/ComicReader");
-            reader = new FileReader(settingsFile);
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-        JSONTokener tokener = new JSONTokener(reader);
-        JSONObject settings = new JSONObject(tokener);
+        JSONObject settings = LocalAppDataUtil.getSettingsObject();
         settings.remove("darkMode");
         settings.put("darkMode", FlatLaf.isLafDark());
         try {
@@ -390,7 +383,7 @@ public class ComicReader extends JFrame {
         JOptionPane.showMessageDialog(this, message, lang.getString("error"), JOptionPane.ERROR_MESSAGE);
     }
 
-    public static void main(String[] args) {
+    public static void init() {
         SwingUtilities.invokeLater(() -> {
             ComicReader comicReader;
             try {

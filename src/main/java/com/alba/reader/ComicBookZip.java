@@ -95,7 +95,7 @@ public class ComicBookZip {
             BufferedImage image = ImageIO.read(is);
             if (image != null) {
                 System.out.println("Successfully read image: " + entry.getName());
-                return image; // Return the original image without resizing
+                return image; // Return the image
             } else {
                 System.err.println("Failed to read image (null): " + entry.getName());
             }

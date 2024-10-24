@@ -2,17 +2,7 @@ package com.alba.reader;
 
 import java.awt.image.BufferedImage;
 
-public class ComicPage {
-
-    private BufferedImage image;
-
-    public ComicPage(BufferedImage image) {
-        this.image = image;
-    }
-
-    public BufferedImage getImage() {
-        return this.image;
-    }
+public record ComicPage(BufferedImage image) {
 
     public int getWidth() {
         if (this.image == null) {

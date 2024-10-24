@@ -22,8 +22,6 @@ public class MetadataDialog {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        JSONObject metadata;
-
 
         // Attempt to load the metadata from the current comic
         ComicListManager comicListManager = new ComicListManager();

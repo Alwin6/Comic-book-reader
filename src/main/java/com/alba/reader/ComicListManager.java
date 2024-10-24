@@ -17,8 +17,8 @@ public class ComicListManager {
 
     public JSONObject getMetadata(String filename) throws IOException {
         try (FileReader reader = LoadComicList()) {
-            JSONTokener tokener = new JSONTokener(reader);
-            JSONObject comicList = new JSONObject(tokener);
+            JSONTokener jsonTokener = new JSONTokener(reader);
+            JSONObject comicList = new JSONObject(jsonTokener);
 
             return comicList.getJSONObject(filename).getJSONObject("metadata");
         }
@@ -26,8 +26,8 @@ public class ComicListManager {
 
     public void updateMetadata(List<String> entries, String filename) throws IOException {
         try (FileReader reader = LoadComicList()) {
-            JSONTokener tokener = new JSONTokener(reader);
-            JSONObject comicList = new JSONObject(tokener);
+            JSONTokener jsonTokener = new JSONTokener(reader);
+            JSONObject comicList = new JSONObject(jsonTokener);
 
             JSONObject thisComic = comicList.getJSONObject(filename);
             JSONObject metadata = new JSONObject();
@@ -47,8 +47,8 @@ public class ComicListManager {
 
     public void updateJSON(String filename, JSONObject metadata, String path) throws IOException {
         try (FileReader reader = LoadComicList()) {
-            JSONTokener tokener = new JSONTokener(reader);
-            JSONObject comicList = new JSONObject(tokener);
+            JSONTokener jsonTokener = new JSONTokener(reader);
+            JSONObject comicList = new JSONObject(jsonTokener);
 
             boolean metadataEdited = false;
             boolean read = false;

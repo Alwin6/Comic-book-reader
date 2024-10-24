@@ -15,7 +15,8 @@ public class FileTypeDetector {
 
     }
 
-    public static boolean isZip(String fileName) {return isZip(new File(fileName));
+    public static boolean isZip(String filePath) {
+        return isZip(new File(filePath));
     }
 
     public static boolean isZip(File file) {
@@ -26,8 +27,8 @@ public class FileTypeDetector {
         }
     }
 
-    public static boolean isNhl(String fileName) {
-        return isNhl(new File(fileName));
+    public static boolean isNhl(String filePath) {
+        return isNhl(new File(filePath));
     }
 
     public static boolean isNhl(File file){
@@ -46,7 +47,8 @@ public class FileTypeDetector {
         return false;
     }
 
-    public static boolean isRar(String fileName) {return isRar(new File(fileName));}
+    public static boolean isRar(String filePath) {
+        return isRar(new File(filePath));}
 
     public static boolean isRar(File file) {
         try (Archive archive = new Archive(file)) {

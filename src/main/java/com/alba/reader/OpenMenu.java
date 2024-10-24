@@ -6,7 +6,7 @@ import javax.swing.*;
 import java.io.IOException;
 
 public class OpenMenu {
-    private JMenu openMenu;
+    private final JMenu openMenu;
 
     public OpenMenu(ComicReader comicReader) {
         JSONObject lang;

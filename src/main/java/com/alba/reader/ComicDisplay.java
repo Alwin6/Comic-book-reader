@@ -2,19 +2,23 @@ package com.alba.reader;
 
 import org.json.JSONObject;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class ComicDisplay extends JFrame {
-    private ComicReader comicReader; // Reference to ComicReader
+    private final ComicReader comicReader; // Reference to ComicReader
 
     public ComicDisplay(List<Comic> comics, ComicReader comicReader) {
         this.comicReader = comicReader;
@@ -93,19 +97,30 @@ public class ComicDisplay extends JFrame {
     }
 
     private static int getTotalPages(String path) throws IOException {
-        int totalPages;
+        int totalPages = 0;
         File comicFile = new File(path);
         if (FileTypeDetector.isZip(path)) {
             totalPages = ComicBookZip.unzip(comicFile, Arrays.asList("jpg", "jpeg", "png", "gif")).size();
-        }else{
-            totalPages = 404;
+        }else if (FileTypeDetector.isRar(path)) {
+            totalPages = ComicBookRar.getMatchingEntries(comicFile, Arrays.asList("jpg", "jpeg", "png", "gif")).size();
         }
 
         return totalPages;
     }
 
-    private static ImageIcon getThumbnail(String path) {
-        ImageIcon thumbnail = new ImageIcon("src/main/resources/reader/Assets/1.jpg");
+    private static ImageIcon getThumbnail(String path) throws IOException {
+        ImageIcon thumbnail;
+        File comicFile = new File(path);
+        if (FileTypeDetector.isZip(path)) {
+            ZipEntry thumbnailEntry = ComicBookZip.unzip(comicFile, Arrays.asList("jpg", "jpeg", "png", "gif")).getFirst();
+            ZipFile zip = new ZipFile(comicFile);
+            InputStream is = zip.getInputStream(thumbnailEntry);
+            thumbnail = new ImageIcon(ImageIO.read(is));
+        }else if (FileTypeDetector.isRar(path)) {
+            thumbnail = new ImageIcon(ComicBookRar.extractFirstImage(comicFile));
+        }else{
+            thumbnail = new ImageIcon("src/main/resources/reader/Assets/1.jpg");
+        }
         return thumbnail;
     }
 

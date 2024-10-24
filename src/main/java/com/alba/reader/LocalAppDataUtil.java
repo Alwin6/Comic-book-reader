@@ -1,13 +1,12 @@
 package com.alba.reader;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.List;
 
 public class LocalAppDataUtil {
@@ -23,7 +22,7 @@ public class LocalAppDataUtil {
         File destinationFile = new File(LOCAL_APP_DATA + targetPath, sourceFile.getName());
 
         // Wait if file is locked
-        while (!isFileAvailable(sourceFile)) {
+        while (!FileTools.isFileAvailable(sourceFile)) {
             try {
 
                 Thread.sleep(100);  // Small delay before retrying
@@ -38,16 +37,6 @@ public class LocalAppDataUtil {
             Files.copy(sourceFile.toPath(), destinationFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
     }
-
-    // Helper method to check if a file is available
-    private static boolean isFileAvailable(File file) {
-        try (FileInputStream fis = new FileInputStream(file)) {
-            return true;  // File can be opened and is not locked
-        } catch (IOException e) {
-            return false; // File is locked
-        }
-    }
-
 
     private static void copyDirectory(Path source, Path destination) throws IOException {
         if (!Files.exists(destination)) {
@@ -116,6 +105,19 @@ public class LocalAppDataUtil {
 
     public static List<String> listDirectoryContents(String dirName, String targetPath) throws IOException {
         return FileTools.listDirectoryContents(dirName, LOCAL_APP_DATA + targetPath);
+    }
+
+    public static JSONObject getSettingsObject(){
+        File settingsFile;
+        FileReader reader;
+        try {
+            settingsFile = getFile("Settings.json", "/Alba/ComicReader");
+            reader = new FileReader(settingsFile);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        JSONTokener jsonTokener = new JSONTokener(reader);
+        return new JSONObject(jsonTokener);
     }
 
     public static void init() throws IOException {

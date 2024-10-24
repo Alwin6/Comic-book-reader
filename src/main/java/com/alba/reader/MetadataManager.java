@@ -4,14 +4,14 @@ import java.io.*;
 import java.util.*;
 
 public class MetadataManager {
-    InputStream inputStream  = null;
+    InputStream inputStream;
     public MetadataManager(InputStream inputStream) {
         this.inputStream = inputStream;
     }
 
     public JSONObject getMetadata() {
-        JSONTokener tokener = new JSONTokener(inputStream);
-        return new JSONObject(tokener);
+        JSONTokener jsonTokener = new JSONTokener(inputStream);
+        return new JSONObject(jsonTokener);
     }
 
     public JSONObject XMLtoMetadata() {

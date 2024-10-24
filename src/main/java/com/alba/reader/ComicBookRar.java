@@ -6,6 +6,7 @@ import java.io.*;
 import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.json.JSONObject;
 
 import com.github.junrar.Archive;
@@ -47,28 +48,20 @@ public class ComicBookRar {
         JSONObject metadata = new JSONObject();
         try (Archive archive = new Archive(file)) {
             FileHeader fileHeader = archive.nextFileHeader();
-            int fileSize = FileTools.getFileSizeMB(file);
             while (fileHeader != null) {
                 // Only process image files
                 if (!fileHeader.isDirectory() && fileHeader.getFileName().matches(".*\\.(jpg|jpeg|png|gif)$")) {
                     try (InputStream is = archive.getInputStream(fileHeader);
-                         ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
 
                         byte[] buffer = new byte[16384];
                         int bytesRead;
                         while ((bytesRead = is.read(buffer)) != -1) {
-                            baos.write(buffer, 0, bytesRead);
+                            byteArrayOutputStream.write(buffer, 0, bytesRead);
                         }
-                        BufferedImage image = ImageIO.read(new ByteArrayInputStream(baos.toByteArray()));
+                        BufferedImage image = ImageIO.read(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
                         if (image != null) {
-                            // Resize image if the file size is above 800MB
-                            if(fileSize > 800){
-                                BufferedImage resizedImage = ImageTools.resizeImage(image, 800, 800); // Resize to max width/height of 800px
-                                images.add(resizedImage);
-                            }
-                            else{
-                                images.add(image);
-                            }
+                            images.add(image);
 
                         } else {
                             System.err.println("Failed to read image: " + fileHeader.getFileName());
@@ -93,5 +86,72 @@ public class ComicBookRar {
         comicListManager.updateJSON(file.getName(), metadata, file.getAbsolutePath());
 
         return images; // Return the list of images
+    }
+
+    public static List<FileHeader> getMatchingEntries(File file, List<String> fileTypes) throws IOException {
+        List<FileHeader> entries = new ArrayList<>();
+
+        System.out.println("Starting to read RAR file: " + file.getName());
+
+        try (Archive archive = new Archive(file)) {
+            long rarOpenStartTime = System.currentTimeMillis();
+            FileHeader fileHeader = archive.nextFileHeader();
+
+            while (fileHeader != null) {
+                if (!fileHeader.isDirectory()) {
+                    String entryName = fileHeader.getFileName();
+
+                    // Check if entry name matches any of the provided file types
+                    if (fileTypes.stream().anyMatch(entryName::endsWith)) {
+                        entries.add(fileHeader);
+                    }
+                }
+                fileHeader = archive.nextFileHeader();
+            }
+            long rarOpenEndTime = System.currentTimeMillis();
+            System.out.println("Time taken to open RAR and read entries: " + (rarOpenEndTime - rarOpenStartTime) + " ms");
+        } catch (RarException e) {
+            throw new IOException("Error reading RAR file", e);
+        }
+
+        return entries; // Return the list of matching entries
+    }
+
+    public static BufferedImage extractFirstImage(File file) throws IOException {
+        BufferedImage firstImage = null;
+        System.out.println("Starting to read RAR file: " + file.getName());
+        try (Archive archive = new Archive(file)) {
+            long rarOpenStartTime = System.currentTimeMillis();
+            FileHeader fileHeader = archive.nextFileHeader();
+            while (fileHeader != null) {
+                // Only process image files
+                if (!fileHeader.isDirectory() && fileHeader.getFileName().matches(".*\\.(jpg|jpeg|png|gif)$")) {
+                    try (InputStream is = archive.getInputStream(fileHeader);
+                         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+
+                        byte[] buffer = new byte[16384];
+                        int bytesRead;
+                        while ((bytesRead = is.read(buffer)) != -1) {
+                            byteArrayOutputStream.write(buffer, 0, bytesRead);
+                        }
+                        firstImage = ImageIO.read(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
+                        if (firstImage != null) {
+                            break; // Exit after processing the first image
+                        } else {
+                            System.err.println("Failed to read image: " + fileHeader.getFileName());
+                        }
+                    } catch (IOException e) {
+                        System.err.println("Error reading entry: " + fileHeader.getFileName());
+                    }
+                }
+                fileHeader = archive.nextFileHeader();
+            }
+            long rarOpenEndTime = System.currentTimeMillis();
+            System.out.println("Time taken to open RAR and read image: " + (rarOpenEndTime - rarOpenStartTime) + " ms");
+        } catch (RarException e) {
+            throw new IOException("Error reading RAR file", e);
+        }
+
+        return firstImage; // Return the first image found, or null if none
     }
 }
