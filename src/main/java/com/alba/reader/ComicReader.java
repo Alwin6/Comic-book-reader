@@ -216,7 +216,7 @@ public class ComicReader extends JFrame {
 
     private void showPage(int index) {
         if (comicBook == null || index < 0 || index >= comicBook.getPageCount()) {
-            showError(lang.getString("loadingComic"));
+            showError(lang.getString("loadingError"));
             return;
         }
         currentPageIndex = index;
