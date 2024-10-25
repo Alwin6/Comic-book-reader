@@ -74,7 +74,7 @@ public class ComicDisplay extends JFrame {
 
 
         go.addActionListener(e -> {
-            List<Comic> newComics = new ArrayList<Comic>();
+            List<Comic> newComics;
 
             Map<String, String> sortMap = Map.of(
                     lang.getString("lastOpened"), "Last opened",
@@ -113,18 +113,19 @@ public class ComicDisplay extends JFrame {
         panel.add(new JLabel("  "));
         add(panel, BorderLayout.NORTH); // Add search and filter segment
 
-        // Initialize comicList
-        this.comicList = new JList<>(new DefaultListModel<>());
-        DefaultListModel<Comic> model = (DefaultListModel<Comic>) comicList.getModel();
+        // Initialize comicList without thumbnails
+        DefaultListModel<Comic> model = new DefaultListModel<>();
         for (Comic comic : comics) {
+            // Create a comic with a placeholder image
+            comic.setThumbnail(new ImageIcon("src/main/resources/reader/Assets/placeholder.jpg")); // Placeholder image
             model.addElement(comic);
         }
+        this.comicList = new JList<>(model);
 
         // Set custom cell renderer
         comicList.setCellRenderer(new ComicCellRenderer());
         comicList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
         comicList.setVisibleRowCount(-1);
-        //comicList.setFixedCellHeight(100); // Adjust height as needed
 
         // Add mouse listener for click events
         comicList.addMouseListener(new MouseAdapter() {
@@ -144,6 +145,42 @@ public class ComicDisplay extends JFrame {
 
         setVisible(true);
         SwingUtilities.invokeLater(() -> getContentPane().requestFocusInWindow());
+
+        // Load thumbnails in the background
+        loadThumbnails(comics);
+    }
+
+    private void loadThumbnails(List<Comic> comics) {
+        SwingWorker<Void, Comic> worker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() {
+                for (Comic comic : comics) {
+                    try {
+                        // Load the thumbnail
+                        ImageIcon thumbnail = getThumbnail(comic.getFilePath());
+                        comic.setThumbnail(thumbnail);
+                        publish(comic); // Publish the comic with the loaded thumbnail
+                    } catch (IOException e) {
+                        e.printStackTrace(); // Handle exceptions as needed
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void process(List<Comic> chunks) {
+                DefaultListModel<Comic> model = (DefaultListModel<Comic>) comicList.getModel();
+                for (Comic comic : chunks) {
+                    model.setElementAt(comic, model.indexOf(comic)); // Update the model with the loaded thumbnail
+                }
+            }
+
+            @Override
+            protected void done() {
+                // Any final updates after loading
+            }
+        };
+        worker.execute();
     }
 
     private void onComicSelected(String filePath) {
@@ -236,7 +273,7 @@ public class ComicDisplay extends JFrame {
         }else if (FileTypeDetector.isRar(path)) {
             thumbnail = new ImageIcon(ComicBookRar.extractFirstImage(comicFile));
         }else{
-            thumbnail = new ImageIcon("src/main/resources/reader/Assets/1.jpg");
+            thumbnail = new ImageIcon("src/main/resources/reader/Assets/notfound.png");
         }
         return thumbnail;
     }

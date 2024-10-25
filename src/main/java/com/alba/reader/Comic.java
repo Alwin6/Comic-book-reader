@@ -35,4 +35,16 @@ public class Comic {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return formatter.format(date);
     }
+
+    public void setThumbnail(ImageIcon thumbnail) {
+        this.thumbnail = thumbnail;
+    }
+
+    public ImageIcon getThumbnail() {
+        return thumbnail;
+    }
+
+    public String getFilePath(){
+        return filePath;
+    }
 }

@@ -64,7 +64,7 @@ public class ComicReader extends JFrame {
         setupFrame(lang);
         setupScrollPane();
         setupProgressBar();
-        //setupButtons(); work in progress
+        setupButtons();
         setupMenuBar();
         setupKeyBindings();
         setupMouseWheelZoom();
@@ -100,9 +100,8 @@ public class ComicReader extends JFrame {
         JButton prevButton = new JButton("<");
         JButton nextButton = new JButton(">");
 
-        // Customize buttons to have a smaller size and no borders
-        prevButton.setPreferredSize(new Dimension(50, 50));
-        nextButton.setPreferredSize(new Dimension(50, 50));
+        prevButton.setPreferredSize(new Dimension(25, 50));
+        nextButton.setPreferredSize(new Dimension(25, 50));
         prevButton.setBorderPainted(false);
         nextButton.setBorderPainted(false);
         prevButton.setFocusPainted(false);
