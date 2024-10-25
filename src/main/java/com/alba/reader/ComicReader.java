@@ -164,14 +164,7 @@ public class ComicReader extends JFrame {
     }
 
     public void openComic() {
-        // Clear the current comic and its resources
-        if (comicBook != null) {
-            comicBook = null; // Clear reference to the current comic
-            currentComic = null; // Clear file
-            cachedImage = null; // Clear cached image
-            currentPageIndex = 0; // Reset current page index
-            imageLabel.setIcon(null); // Clear displayed image
-        }
+        clearComic();
 
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new FileNameExtensionFilter(lang.getString("fileChooserDescription"), "cbz", "cbr", "nhlcomic"));
@@ -182,8 +175,21 @@ public class ComicReader extends JFrame {
     }
 
     public void openComicFile(File comicFile) {
+        clearComic();
+
         currentComic = comicFile; // Set the current comic file
         loadComicInBackground(comicFile); // Load the comic
+    }
+
+    public void clearComic(){
+        // Clear the current comic and its resources
+        if (comicBook != null) {
+            comicBook = null; // Clear reference to the current comic
+            currentComic = null; // Clear file
+            cachedImage = null; // Clear cached image
+            currentPageIndex = 0; // Reset current page index
+            imageLabel.setIcon(null); // Clear displayed image
+        }
     }
 
     public File getCurrentComic() {

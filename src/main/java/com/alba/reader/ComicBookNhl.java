@@ -34,7 +34,9 @@ public class ComicBookNhl {
     }
 
     public static ComicPage[] getPagesFromGifInZip(File file) throws IOException {
+        System.out.println("Starting to unzip file: " + file.getName());
         try (ZipFile zip = new ZipFile(file)) {
+            long zipOpenStartTime = System.currentTimeMillis();
             Enumeration<? extends ZipEntry> entries = zip.entries();
             ComicPage[] pagesTemp = new ComicPage[0];
             JSONObject metadata = new JSONObject();
@@ -63,6 +65,8 @@ public class ComicBookNhl {
                             pagesTemp = pages;
 
                         }
+                        long zipOpenEndTime = System.currentTimeMillis();
+                        System.out.println("Time taken to open zip and read entries: " + (zipOpenEndTime - zipOpenStartTime) + " ms");
                     } catch (IOException ex) {
                         // Handle exceptions as needed
                     }
@@ -80,9 +84,46 @@ public class ComicBookNhl {
 
             return pagesTemp;
         }
-       // return new ComicPage[0];
     }
 
+    public static List<BufferedImage> getImagesFromGifInZip(File file) throws IOException {
+        List<BufferedImage> images = new ArrayList<>();
 
+        System.out.println("Starting to unzip file: " + file.getName());
 
+        try (ZipFile zip = new ZipFile(file)) {
+            long zipOpenStartTime = System.currentTimeMillis();
+            Enumeration<? extends ZipEntry> entries = zip.entries();
+
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+
+                // Only process GIF files
+                if (!entry.isDirectory() && entry.getName().endsWith(".gif")) {
+                    try (InputStream inputStream = zip.getInputStream(entry);
+                         ImageInputStream imageInputStream = ImageIO.createImageInputStream(inputStream)) {
+
+                        // Get the ImageReader for GIF
+                        Iterator<ImageReader> readers = ImageIO.getImageReadersByFormatName("gif");
+                        if (readers.hasNext()) {
+                            ImageReader reader = readers.next();
+                            reader.setInput(imageInputStream);
+
+                            int count = reader.getNumImages(true);
+                            for (int index = 0; index < count; index++) {
+                                BufferedImage image = reader.read(index);
+                                images.add(image); // Add images to the list
+                            }
+                        }
+                        long zipOpenEndTime = System.currentTimeMillis();
+                        System.out.println("Time taken to open zip and read entries: " + (zipOpenEndTime - zipOpenStartTime) + " ms");
+                    } catch (IOException e) {
+                        throw new IOException("Error reading NHL file", e);
+                    }
+                }
+            }
+        }
+
+        return images; // Return the list of BufferedImages
+    }
 }
