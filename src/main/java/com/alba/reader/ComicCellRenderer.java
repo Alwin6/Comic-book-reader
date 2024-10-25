@@ -1,7 +1,10 @@
 package com.alba.reader;
 
+import org.json.JSONObject;
+
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 import java.util.*;
 
 class ComicCellRenderer extends DefaultListCellRenderer {
@@ -12,6 +15,12 @@ class ComicCellRenderer extends DefaultListCellRenderer {
     @Override
     public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
         if (value instanceof Comic comic) {
+            JSONObject lang;
+            try {
+                lang = LanguageManager.LoadLanguage();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
             // Create a JPanel to hold the image and text
             JPanel panel = new JPanel();
@@ -35,7 +44,7 @@ class ComicCellRenderer extends DefaultListCellRenderer {
             textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
 
             JLabel titleLabel = new JLabel(comic.title);
-            JLabel subtitleLabel = new JLabel("Last Opened: " + comic.lastOpened + " | Page " + comic.currentPage + " of " + comic.totalPages);
+            JLabel subtitleLabel = new JLabel(lang.getString("lastOpenedCol") + comic.lastOpened + lang.getString("pageCount2") + comic.currentPage + lang.getString("of") + comic.totalPages);
 
             textPanel.add(titleLabel);
             textPanel.add(subtitleLabel);

@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -23,10 +24,94 @@ public class ComicDisplay extends JFrame {
 
     public ComicDisplay(List<Comic> comics, ComicReader comicReader) {
         this.comicReader = comicReader;
-
-        setTitle("Comic Display");
+        JSONObject lang;
+        try {
+            lang = LanguageManager.LoadLanguage();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        setTitle(lang.getString("comicDisplay"));
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Only close this window
-        setSize(800, 600);
+        setSize(1125, 825);
+        setLocationRelativeTo(null);
+
+        // Search sort and filter panels
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+
+        JLabel searchLabel = new JLabel("  " + lang.getString("search"));
+
+        JTextField search = new JTextField();
+
+
+        JLabel sort = new JLabel(" " + lang.getString("sort"));
+
+        JComboBox<String> sortBy = new JComboBox<>();
+        sortBy.addItem(lang.getString("lastOpened"));
+        sortBy.addItem(lang.getString("title"));
+        sortBy.addItem(lang.getString("pages"));
+        sortBy.setSelectedItem(lang.getString("lastOpened"));
+
+        JComboBox<String> sortOrder = new JComboBox<>();
+        sortOrder.addItem(lang.getString("ascending"));
+        sortOrder.addItem(lang.getString("descending"));
+        sortOrder.setSelectedItem(lang.getString("descending"));
+
+        JLabel filter = new JLabel(" " + lang.getString("filter"));
+
+        JComboBox<String> filterBy = new JComboBox<>();
+        filterBy.addItem(lang.getString("none"));
+        filterBy.addItem(lang.getString("read"));
+        filterBy.addItem(lang.getString("notRead"));
+        filterBy.addItem(lang.getString("reading"));
+        filterBy.addItem(lang.getString("favorite"));
+        filterBy.addItem(lang.getString("notFavorite"));
+        filterBy.setSelectedItem(lang.getString("none"));
+
+        JButton go = new JButton(lang.getString("goSearch"));
+
+
+        go.addActionListener(e -> {
+            List<Comic> newComics = new ArrayList<Comic>();
+
+            Map<String, String> sortMap = Map.of(
+                    lang.getString("lastOpened"), "Last opened",
+                    lang.getString("title"), "Title",
+                    lang.getString("pages"), "Pages"
+            );
+            String sortValue = sortMap.get((String)sortBy.getSelectedItem());
+            newComics = ComicRefinement.sortComics(comics, sortValue, sortOrder.getSelectedItem() == lang.getString("ascending"));
+
+            Map<String, String> filterMap = Map.of(
+                    lang.getString("read"), "Read",
+                    lang.getString("notRead"), "Not read",
+                    lang.getString("reading"), "Reading",
+                    lang.getString("favorite"), "Favorite",
+                    lang.getString("notFavorite"), "Not favorite"
+            );
+
+            String filterValue = filterMap.get((String)filterBy.getSelectedItem());
+            if (filterValue != null) {
+                newComics = ComicRefinement.filterComics(newComics, filterValue);
+            }
+
+            newComics = ComicRefinement.searchComics(newComics, search.getText());
+
+            updateComics(newComics);
+        });
+
+        panel.add(searchLabel);
+        panel.add(search, gbc);
+        panel.add(sort);
+        panel.add(sortBy);
+        panel.add(sortOrder);
+        panel.add(filter);
+        panel.add(filterBy);
+        panel.add(go);
+        panel.add(new JLabel("  "));
+        add(panel, BorderLayout.NORTH); // Add search and filter segment
 
         // Initialize comicList
         this.comicList = new JList<>(new DefaultListModel<>());
@@ -58,6 +143,7 @@ public class ComicDisplay extends JFrame {
         add(scrollPane, BorderLayout.CENTER);
 
         setVisible(true);
+        SwingUtilities.invokeLater(() -> getContentPane().requestFocusInWindow());
     }
 
     private void onComicSelected(String filePath) {
@@ -82,16 +168,32 @@ public class ComicDisplay extends JFrame {
             JSONObject comicJson = jsonObject.getJSONObject(key);
             String path = comicJson.getString("path");
             boolean read = comicJson.getBoolean("read");
+            boolean favorite = comicJson.getBoolean("favorite");
             long lastOpened = comicJson.getLong("lastOpened");
             int currentPage = comicJson.getInt("currentPage");
             int totalPages = getTotalPages(path);
             ImageIcon thumbnail = getThumbnail(path);
-            String title = key; // Using the key as the title
+            String title;
+
+            JSONObject metadata = comicJson.getJSONObject("metadata");
+            if (metadata.has("title")) {
+                title = metadata.getString("title");
+            } else if (metadata.has("Title")) {
+                title = metadata.getString("Title");
+            } else if (metadata.has("name")) {
+                title = metadata.getString("name");
+            } else if (metadata.has("Name")) {
+                title = metadata.getString("Name");
+            } else {
+                title = key; // Using the key as the title if there wasn't a title in the metadata
+            }
 
             // Create a new Comic object
-            Comic comic = new Comic(title, thumbnail, read, lastOpened, currentPage, totalPages, path);
+            Comic comic = new Comic(title, thumbnail, read, favorite, lastOpened, currentPage, totalPages, path, metadata);
             comicsList.add(comic);
         }
+
+        ComicRefinement.sortComics(comicsList, "Last opened", false); // Default order
 
         // Return the list
         return comicsList;
