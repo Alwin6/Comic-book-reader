@@ -19,6 +19,7 @@ import java.util.zip.ZipFile;
 
 public class ComicDisplay extends JFrame {
     private final ComicReader comicReader; // Reference to ComicReader
+    private final JList<Comic> comicList;
 
     public ComicDisplay(List<Comic> comics, ComicReader comicReader) {
         this.comicReader = comicReader;
@@ -27,8 +28,8 @@ public class ComicDisplay extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Only close this window
         setSize(800, 600);
 
-        // Create the JList
-        JList<Comic> comicList = new JList<>(new DefaultListModel<>());
+        // Initialize comicList
+        this.comicList = new JList<>(new DefaultListModel<>());
         DefaultListModel<Comic> model = (DefaultListModel<Comic>) comicList.getModel();
         for (Comic comic : comics) {
             model.addElement(comic);
@@ -94,6 +95,14 @@ public class ComicDisplay extends JFrame {
 
         // Return the list
         return comicsList;
+    }
+
+    public void updateComics(List<Comic> newComics) {
+        DefaultListModel<Comic> model = (DefaultListModel<Comic>) comicList.getModel();
+        model.clear(); // Clear the existing list
+        for (Comic comic : newComics) {
+            model.addElement(comic); // Add new comics
+        }
     }
 
     private static int getTotalPages(String path) throws IOException {
