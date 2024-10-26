@@ -45,7 +45,6 @@ public class ComicDisplay extends JFrame {
 
         JTextField search = new JTextField();
 
-
         JLabel sort = new JLabel(" " + lang.getString("sort"));
 
         JComboBox<String> sortBy = new JComboBox<>();
@@ -104,10 +103,92 @@ public class ComicDisplay extends JFrame {
         comicList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                int index = comicList.locationToIndex(e.getPoint());
-                if (index >= 0) {
-                    Comic selectedComic = model.getElementAt(index);
-                    onComicSelected(selectedComic.filePath); // Call the method to handle the click
+                if (SwingUtilities.isRightMouseButton(e)) { // Right click, options
+                    int index = comicList.locationToIndex(e.getPoint());
+                    if (index >= 0) {
+                        Comic selectedComic = model.getElementAt(index);
+                        JPopupMenu contextMenu = new JPopupMenu();
+
+                        JMenuItem open = new JMenuItem(lang.getString("open"));
+                        JMenuItem rename = new JMenuItem(lang.getString("rename"));
+                        JMenuItem delete = new JMenuItem(lang.getString("remove"));
+                        JSeparator separator = new JSeparator();
+                        JMenuItem favorite = new JMenuItem(lang.getString("markFav"));
+                        if (selectedComic.favorite) {
+                            favorite = new JMenuItem(lang.getString("markFavNot"));
+                        }
+                        JMenuItem read = new JMenuItem(lang.getString("markRead"));
+                        if (selectedComic.read) {
+                            read = new JMenuItem(lang.getString("markUnread"));
+                        }
+
+                        open.addActionListener(g -> {
+                            onComicSelected(selectedComic.filePath); // Call the method to handle the click
+                        });
+
+                        rename.addActionListener(g -> {
+                           JFrame renameFrame = new JFrame();
+                           renameFrame.setTitle(lang.getString("rename"));
+                           JPanel panel = new JPanel();
+
+                           JLabel label = new JLabel(lang.getString("renameCol"));
+                           JTextField name = new JTextField();
+                           name.setText(selectedComic.title);
+                           name.setColumns(32);
+
+                           panel.add(label);
+                           panel.add(name);
+
+                           name.addActionListener(h -> {
+                               ComicListManager.rename(selectedComic.ID, name.getText());
+                               model.getElementAt(index).title = name.getText();
+                               performSearchAction(comics, sortBy, sortOrder, filterBy, search, lang);
+                               renameFrame.dispose();
+                           });
+
+                           renameFrame.setResizable(false);
+                           renameFrame.getContentPane().add(panel);
+                           renameFrame.pack();
+                           renameFrame.setLocationRelativeTo(null);
+                           renameFrame.setVisible(true);
+                        });
+
+                        delete.addActionListener(g -> {
+                            ComicListManager.remove(selectedComic.ID);
+                            comics.remove(index);
+                            performSearchAction(comics, sortBy, sortOrder, filterBy, search, lang);
+                        });
+
+                        favorite.addActionListener(g -> {
+                            boolean newValue = !(boolean)ComicListManager.readField(selectedComic.ID, "favorite");
+                            ComicListManager.updateField(selectedComic.ID, "favorite", newValue);
+                            model.getElementAt(index).favorite = newValue;
+                            performSearchAction(comics, sortBy, sortOrder, filterBy, search, lang);
+                        });
+                        read.addActionListener(g -> {
+                            boolean newValue = !(boolean)ComicListManager.readField(selectedComic.ID, "read");
+                            ComicListManager.updateField(selectedComic.ID, "read", newValue);
+                            model.getElementAt(index).read = newValue;
+                            performSearchAction(comics, sortBy, sortOrder, filterBy, search, lang);
+                        });
+
+                        contextMenu.add(open);
+                        contextMenu.add(rename);
+                        contextMenu.add(delete);
+                        contextMenu.add(separator);
+                        contextMenu.add(favorite);
+                        contextMenu.add(read);
+
+                        contextMenu.show(comicList, e.getX(), e.getY());
+                    }
+
+
+                } else { // Left click, open comic
+                    int index = comicList.locationToIndex(e.getPoint());
+                    if (index >= 0) {
+                        Comic selectedComic = model.getElementAt(index);
+                        onComicSelected(selectedComic.filePath); // Call the method to handle the click
+                    }
                 }
             }
         });
@@ -168,6 +249,7 @@ public class ComicDisplay extends JFrame {
 
     public static List<Comic> parseComics() throws IOException {
         // Read the file contents
+        // You know there's LoadComicList for that, right?
         String content = new String(Files.readAllBytes(LocalAppDataUtil.getFile("ComicList.json", "/Alba/ComicReader").toPath()));
 
         // Parse the content
@@ -199,7 +281,7 @@ public class ComicDisplay extends JFrame {
             }
 
             // Create a new Comic object
-            Comic comic = new Comic(title, thumbnail, read, favorite, lastOpened, currentPage, totalPages, path, metadata);
+            Comic comic = new Comic(title, thumbnail, read, favorite, lastOpened, currentPage, totalPages, path, metadata, key);
             comicsList.add(comic);
         }
 

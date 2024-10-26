@@ -16,8 +16,9 @@ public class Comic {
     int totalPages;
     String filePath;
     JSONObject metadata;
+    String ID;
 
-    public Comic(String title, ImageIcon thumbnail, boolean read, boolean favorite, long lastOpened, int currentPage, int totalPages, String filePath, JSONObject metadata) {
+    public Comic(String title, ImageIcon thumbnail, boolean read, boolean favorite, long lastOpened, int currentPage, int totalPages, String filePath, JSONObject metadata, String ID) {
         this.title = title;
         this.thumbnail = thumbnail;
         this.read = read;
@@ -27,6 +28,7 @@ public class Comic {
         this.totalPages = totalPages;
         this.filePath = filePath;
         this.metadata = metadata;
+        this.ID = ID;
     }
 
     // Convert timestamp to date string

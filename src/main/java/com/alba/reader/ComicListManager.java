@@ -45,6 +45,77 @@ public class ComicListManager {
         }
     }
 
+    public static void updateField(String filename, String field, Object value) {
+        try (FileReader reader = LoadComicList()) {
+            JSONTokener jsonTokener = new JSONTokener(reader);
+            JSONObject comicList = new JSONObject(jsonTokener);
+
+            JSONObject thisComic = comicList.getJSONObject(filename);
+            thisComic.remove(field);
+            thisComic.put(field, value);
+
+            comicList.remove(filename);
+            comicList.put(filename, thisComic);
+
+            writeStringToFile("/Alba/ComicReader/ComicList.json", comicList.toString(4));
+        } catch (IOException ignore) {}
+    }
+
+    public static void remove(String filename) {
+        try (FileReader reader = LoadComicList()) {
+            JSONTokener jsonTokener = new JSONTokener(reader);
+            JSONObject comicList = new JSONObject(jsonTokener);
+
+            comicList.remove(filename);
+
+            writeStringToFile("/Alba/ComicReader/ComicList.json", comicList.toString(4));
+        } catch (IOException ignore) {}
+    }
+
+    public static void rename(String filename, String name) {
+        try (FileReader reader = LoadComicList()) {
+            JSONTokener jsonTokener = new JSONTokener(reader);
+            JSONObject comicList = new JSONObject(jsonTokener);
+
+            JSONObject thisComic = comicList.getJSONObject(filename);
+            JSONObject metadata = new JSONObject();
+
+            if (metadata.has("title")) {
+                metadata.put("title", name);
+            } else if (metadata.has("Title")) {
+                metadata.put("Title", name);
+            } else if (metadata.has("name")) {
+                metadata.put("name", name);
+            } else if (metadata.has("Name")) {
+                metadata.put("Name", name);
+            } else {
+                metadata.put("Title", name);
+            }
+
+            thisComic.remove("metadata");
+            thisComic.put("metadata", metadata);
+            comicList.remove(filename);
+            comicList.put(filename, thisComic);
+
+            writeStringToFile("/Alba/ComicReader/ComicList.json", comicList.toString(4));
+
+        } catch (IOException ignore) {}
+    }
+
+    public static Object readField(String filename, String field) {
+        try (FileReader reader = LoadComicList()) {
+            JSONTokener jsonTokener = new JSONTokener(reader);
+            JSONObject comicList = new JSONObject(jsonTokener);
+
+            JSONObject thisComic = comicList.getJSONObject(filename);
+
+            return thisComic.get(field);
+
+        } catch (IOException ignore) {}
+
+        return null;
+    }
+
     public void updateJSON(String filename, JSONObject metadata, String path) throws IOException {
         try (FileReader reader = LoadComicList()) {
             JSONTokener jsonTokener = new JSONTokener(reader);
@@ -89,7 +160,7 @@ public class ComicListManager {
         }
     }
 
-    public FileReader LoadComicList() throws IOException {
+    public static FileReader LoadComicList() throws IOException {
         createFileInLocalAppData("ComicList.json", "/Alba/ComicReader");
         File comicL = getFile("ComicList.json", "/Alba/ComicReader");
         if (comicL.length() == 0) {

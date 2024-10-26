@@ -50,5 +50,12 @@
   "search": "Zoeken: ",
   "goSearch": "Zoek",
   "lastOpenedCol": "Laatst Geopend: ",
-  "of": " van de "
+  "of": " van de ",
+  "delete": "Verwijder uit Stripboekenbibliotheek",
+  "rename": "Hernoemen",
+  "renameCol": "Naam: ",
+  "markFav": "Voeg toe aan favorieten",
+  "markFavNot": "Verwijder uit favorieten",
+  "markRead": "Als gelezen markeren",
+  "markUnread": "Als ongelezen markeren"
 }

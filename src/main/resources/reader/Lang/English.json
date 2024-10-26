@@ -50,5 +50,12 @@
   "search": "Search: ",
   "goSearch": "Search",
   "lastOpenedCol": "Last Opened: ",
-  "of": " of "
+  "of": " of ",
+  "remove": "Remove from Comic Library",
+  "rename": "Rename",
+  "renameCol": "Name: ",
+  "markFav": "Add to Favorites",
+  "markFavNot": "Remove from Favorites",
+  "markRead": "Mark as Read",
+  "markUnread": "Mark as Unread"
 }
