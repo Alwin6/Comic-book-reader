@@ -72,35 +72,8 @@ public class ComicDisplay extends JFrame {
 
         JButton go = new JButton(lang.getString("goSearch"));
 
-
-        go.addActionListener(e -> {
-            List<Comic> newComics;
-
-            Map<String, String> sortMap = Map.of(
-                    lang.getString("lastOpened"), "Last opened",
-                    lang.getString("title"), "Title",
-                    lang.getString("pages"), "Pages"
-            );
-            String sortValue = sortMap.get((String)sortBy.getSelectedItem());
-            newComics = ComicRefinement.sortComics(comics, sortValue, sortOrder.getSelectedItem() == lang.getString("ascending"));
-
-            Map<String, String> filterMap = Map.of(
-                    lang.getString("read"), "Read",
-                    lang.getString("notRead"), "Not read",
-                    lang.getString("reading"), "Reading",
-                    lang.getString("favorite"), "Favorite",
-                    lang.getString("notFavorite"), "Not favorite"
-            );
-
-            String filterValue = filterMap.get((String)filterBy.getSelectedItem());
-            if (filterValue != null) {
-                newComics = ComicRefinement.filterComics(newComics, filterValue);
-            }
-
-            newComics = ComicRefinement.searchComics(newComics, search.getText());
-
-            updateComics(newComics);
-        });
+        go.addActionListener(e -> performSearchAction(comics, sortBy, sortOrder, filterBy, search, lang));
+        search.addActionListener(e -> performSearchAction(comics, sortBy, sortOrder, filterBy, search, lang));
 
         panel.add(searchLabel);
         panel.add(search, gbc);
@@ -281,4 +254,35 @@ public class ComicDisplay extends JFrame {
     public static void showComicDisplay(List<Comic> comics, ComicReader comicReader) {
         SwingUtilities.invokeLater(() -> new ComicDisplay(comics, comicReader));
     }
+
+    private void performSearchAction(List<Comic> comics, JComboBox<String> sortBy, JComboBox<String> sortOrder,
+                                     JComboBox<String> filterBy, JTextField search, JSONObject lang) {
+        List<Comic> newComics;
+
+        Map<String, String> sortMap = Map.of(
+                lang.getString("lastOpened"), "Last opened",
+                lang.getString("title"), "Title",
+                lang.getString("pages"), "Pages"
+        );
+        String sortValue = sortMap.get((String)sortBy.getSelectedItem());
+        newComics = ComicRefinement.sortComics(comics, sortValue, sortOrder.getSelectedItem() == lang.getString("ascending"));
+
+        Map<String, String> filterMap = Map.of(
+                lang.getString("read"), "Read",
+                lang.getString("notRead"), "Not read",
+                lang.getString("reading"), "Reading",
+                lang.getString("favorite"), "Favorite",
+                lang.getString("notFavorite"), "Not favorite"
+        );
+
+        String filterValue = filterMap.get((String)filterBy.getSelectedItem());
+        if (filterValue != null) {
+            newComics = ComicRefinement.filterComics(newComics, filterValue);
+        }
+
+        newComics = ComicRefinement.searchComics(newComics, search.getText());
+
+        updateComics(newComics);
+    }
+
 }
