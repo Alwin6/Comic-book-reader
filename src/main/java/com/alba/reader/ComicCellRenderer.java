@@ -44,14 +44,17 @@ class ComicCellRenderer extends DefaultListCellRenderer {
             textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
 
             JLabel titleLabel = new JLabel(comic.title);
-            JLabel subtitleLabel = new JLabel(lang.getString("lastOpenedCol") + comic.lastOpened + lang.getString("pageCount2") + comic.currentPage + lang.getString("of") + comic.totalPages);
+            JLabel subtitleLabel = new JLabel(lang.getString("lastOpenedCol") + comic.lastOpened);
+            JLabel pageLabel = new JLabel(lang.getString("pageCount2") + comic.currentPage + lang.getString("of") + comic.totalPages);
 
             textPanel.add(titleLabel);
             textPanel.add(subtitleLabel);
+            textPanel.add(pageLabel);
 
             panel.add(textPanel, BorderLayout.SOUTH);
 
-            panel.setPreferredSize(new Dimension(subtitleLabel.getPreferredSize().width + 20, IMAGE_HEIGHT + 60));
+            System.out.println(subtitleLabel.getPreferredSize());
+            panel.setPreferredSize(new Dimension(254 + 20, IMAGE_HEIGHT + 60));
 
             return panel;
         }
