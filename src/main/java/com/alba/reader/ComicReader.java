@@ -195,6 +195,9 @@ public class ComicReader extends JFrame {
         return currentComic;
     }
 
+    public int getCurrentPageIndex() {
+        return currentPageIndex;
+    }
 
     private void loadComicInBackground(File comic) {
         progressBar.setVisible(true);

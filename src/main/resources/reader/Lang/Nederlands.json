@@ -57,5 +57,7 @@
   "markFav": "Voeg toe aan favorieten",
   "markFavNot": "Verwijder uit favorieten",
   "markRead": "Als gelezen markeren",
-  "markUnread": "Als ongelezen markeren"
+  "markUnread": "Als ongelezen markeren",
+  "openAnnotations": "Open Annotaties",
+  "annotations": "Annotatie van pagina "
 }

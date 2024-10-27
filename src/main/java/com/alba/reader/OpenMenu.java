@@ -21,6 +21,10 @@ public class OpenMenu {
         openComicItem.addActionListener(e -> comicReader.openComic());
         openMenu.add(openComicItem);
 
+        JMenuItem openAnnotations = new JMenuItem(lang.getString("openAnnotations"));
+        openAnnotations.addActionListener(e -> AnnotationsDialog.AnnotationsDialog(comicReader.getCurrentComic(), comicReader.getCurrentPageIndex()));
+        openMenu.add(openAnnotations);
+
         JMenuItem openMetadataItem = new JMenuItem(lang.getString("openMetadata"));
         openMetadataItem.addActionListener(e -> MetadataDialog.MetadataDialog(comicReader.getCurrentComic()));
         openMenu.add(openMetadataItem);
