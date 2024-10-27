@@ -127,8 +127,8 @@ public class ComicDisplay extends JFrame {
                         });
 
                         rename.addActionListener(g -> {
-                           JFrame renameFrame = new JFrame();
-                           renameFrame.setTitle(lang.getString("rename"));
+                           JDialog renameDialog = new JDialog();
+                           renameDialog.setTitle(lang.getString("rename"));
                            JPanel panel = new JPanel();
 
                            JLabel label = new JLabel(lang.getString("renameCol"));
@@ -143,14 +143,15 @@ public class ComicDisplay extends JFrame {
                                ComicListManager.rename(selectedComic.ID, name.getText());
                                model.getElementAt(index).title = name.getText();
                                performSearchAction(comics, sortBy, sortOrder, filterBy, search, lang);
-                               renameFrame.dispose();
+                               renameDialog.dispose();
                            });
 
-                           renameFrame.setResizable(false);
-                           renameFrame.getContentPane().add(panel);
-                           renameFrame.pack();
-                           renameFrame.setLocationRelativeTo(null);
-                           renameFrame.setVisible(true);
+                           renameDialog.setResizable(false);
+
+                           renameDialog.getContentPane().add(panel);
+                           renameDialog.pack();
+                           renameDialog.setLocationRelativeTo(null);
+                           renameDialog.setVisible(true);
                         });
 
                         delete.addActionListener(g -> {

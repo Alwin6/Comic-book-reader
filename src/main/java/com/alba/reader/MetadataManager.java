@@ -17,6 +17,16 @@ public class MetadataManager {
     public JSONObject XMLtoMetadata() {
         Scanner scanner = new Scanner(inputStream).useDelimiter("\\A");
         String xml = scanner.hasNext() ? scanner.next() : "";
-        return XML.toJSONObject(xml);
+        JSONObject metadata = XML.toJSONObject(xml);
+        for (Iterator<String> it = metadata.keys(); it.hasNext(); ) {
+            String key = it.next();
+
+            try {
+                return metadata.getJSONObject(key);
+            } catch (Exception ignored) {
+
+            }
+        }
+        return metadata;
     }
 }

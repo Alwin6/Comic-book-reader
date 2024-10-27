@@ -78,7 +78,8 @@ public class ComicListManager {
             JSONObject comicList = new JSONObject(jsonTokener);
 
             JSONObject thisComic = comicList.getJSONObject(filename);
-            JSONObject metadata = new JSONObject();
+            JSONObject metadata = thisComic.getJSONObject("metadata");
+
 
             if (metadata.has("title")) {
                 metadata.put("title", name);
@@ -91,6 +92,7 @@ public class ComicListManager {
             } else {
                 metadata.put("Title", name);
             }
+
 
             thisComic.remove("metadata");
             thisComic.put("metadata", metadata);
