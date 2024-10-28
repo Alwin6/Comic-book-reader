@@ -59,5 +59,6 @@
   "markRead": "Als gelezen markeren",
   "markUnread": "Als ongelezen markeren",
   "openAnnotations": "Open Annotaties",
-  "annotations": "Annotatie van pagina "
+  "annotations": "Annotatie van pagina ",
+  "openLibrary": "Open Stripboekenbibliotheek"
 }

@@ -3,7 +3,10 @@ package com.alba.reader;
 import org.json.JSONObject;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 public class OpenMenu {
     private final JMenu openMenu;
@@ -20,6 +23,19 @@ public class OpenMenu {
         JMenuItem openComicItem = new JMenuItem(lang.getString("openComic"));
         openComicItem.addActionListener(e -> comicReader.openComic());
         openMenu.add(openComicItem);
+
+        JMenuItem openLibrary = new JMenuItem(lang.getString("openLibrary"));
+        openLibrary.addActionListener(e -> {
+            // Show the ComicDisplay window with ComicReader
+            List<Comic> comics;
+            try {
+                comics = ComicDisplay.parseComics();
+            } catch (IOException f) {
+                throw new RuntimeException(f);
+            }
+            ComicDisplay.showComicDisplay(comics, comicReader);
+        });
+        openMenu.add(openLibrary);
 
         JMenuItem openAnnotations = new JMenuItem(lang.getString("openAnnotations"));
         openAnnotations.addActionListener(e -> AnnotationsDialog.AnnotationsDialog(comicReader.getCurrentComic(), comicReader.getCurrentPageIndex()));

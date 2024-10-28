@@ -38,6 +38,7 @@ public class ComicReader extends JFrame {
     private static final float ZOOM_IN_LIMIT = 3.0f;
     private static final float ZOOM_OUT_LIMIT = 0.05f;
     private final JSONObject lang;
+    private int currentPage;
 
     public ComicReader() throws IOException {
         LocalAppDataUtil.init();
@@ -169,7 +170,9 @@ public class ComicReader extends JFrame {
         fileChooser.setFileFilter(new FileNameExtensionFilter(lang.getString("fileChooserDescription"), "cbz", "cbr", "nhlcomic"));
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             currentComic = fileChooser.getSelectedFile();
-            loadComicInBackground(currentComic);
+
+            currentPage = (int) ComicListManager.readField(currentComic.getName(), "currentPage");
+            loadComicInBackground(currentComic, currentPage);
         }
     }
 
@@ -177,7 +180,8 @@ public class ComicReader extends JFrame {
         clearComic();
 
         currentComic = comicFile; // Set the current comic file
-        loadComicInBackground(comicFile); // Load the comic
+        currentPage = (int) ComicListManager.readField(currentComic.getName(), "currentPage");
+        loadComicInBackground(comicFile, currentPage); // Load the comic
     }
 
     public void clearComic(){
@@ -199,7 +203,7 @@ public class ComicReader extends JFrame {
         return currentPageIndex;
     }
 
-    private void loadComicInBackground(File comic) {
+    private void loadComicInBackground(File comic, int currentPage) {
         progressBar.setVisible(true);
         ComicLoader loader = new ComicLoader(comic, progressBar);
         loader.loadComicInBackground();
@@ -208,7 +212,7 @@ public class ComicReader extends JFrame {
             if ("state".equals(evt.getPropertyName()) && evt.getNewValue() == SwingWorker.StateValue.DONE) {
                 try {
                     comicBook = loader.getComicBook();
-                    currentPageIndex = 0;
+                    currentPageIndex = currentPage != (comicBook.getPageCount() - 1) ? currentPage : 0;
                     zoomFactor = 1.0f; // Reset zoom
                     showPage(currentPageIndex);
                     progressBar.setVisible(false);
@@ -237,6 +241,14 @@ public class ComicReader extends JFrame {
         } else {
             cachedImage = null;
             updateImage(page);
+        }
+
+        if (currentPageIndex > currentPage) {
+            currentPage = currentPageIndex;
+            ComicListManager.updateField(currentComic.getName(), "currentPage", currentPageIndex);
+            if (currentPageIndex == comicBook.getPageCount() - 1) {
+                ComicListManager.updateField(currentComic.getName(), "read", true);
+            }
         }
     }
 

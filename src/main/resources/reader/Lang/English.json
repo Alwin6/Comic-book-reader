@@ -59,5 +59,6 @@
   "markRead": "Mark as Read",
   "markUnread": "Mark as Unread",
   "openAnnotations": "Open Annotations",
-  "annotations": "Annotation of page "
+  "annotations": "Annotation of page ",
+  "openLibrary": "Open Comic Library"
 }

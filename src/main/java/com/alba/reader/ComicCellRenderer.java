@@ -45,7 +45,7 @@ class ComicCellRenderer extends DefaultListCellRenderer {
 
             JLabel titleLabel = new JLabel(comic.title);
             JLabel subtitleLabel = new JLabel(lang.getString("lastOpenedCol") + comic.lastOpened);
-            JLabel pageLabel = new JLabel(lang.getString("pageCount2") + comic.currentPage + lang.getString("of") + comic.totalPages);
+            JLabel pageLabel = new JLabel(lang.getString("pageCount2") + (comic.currentPage + 1) + lang.getString("of") + comic.totalPages);
 
             textPanel.add(titleLabel);
             textPanel.add(subtitleLabel);

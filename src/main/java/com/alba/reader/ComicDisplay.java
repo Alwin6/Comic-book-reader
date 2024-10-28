@@ -169,6 +169,10 @@ public class ComicDisplay extends JFrame {
                         read.addActionListener(g -> {
                             boolean newValue = !(boolean)ComicListManager.readField(selectedComic.ID, "read");
                             ComicListManager.updateField(selectedComic.ID, "read", newValue);
+                            if (!newValue) {
+                                ComicListManager.updateField(selectedComic.ID, "currentPage", 0);
+                                model.getElementAt(index).currentPage = 0;
+                            }
                             model.getElementAt(index).read = newValue;
                             performSearchAction(comics, sortBy, sortOrder, filterBy, search, lang);
                         });

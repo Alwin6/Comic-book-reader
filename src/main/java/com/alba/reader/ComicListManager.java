@@ -113,9 +113,9 @@ public class ComicListManager {
 
             return thisComic.get(field);
 
-        } catch (IOException ignore) {}
-
-        return null;
+        } catch (Exception e) {
+            return 0; // This exception only occurs when we want to know what page we're at, and it expects an integer
+        }
     }
 
     public void updateJSON(String filename, JSONObject metadata, String path) throws IOException {

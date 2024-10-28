@@ -900,13 +900,17 @@ public class Scene extends JPanel implements KeyListener {
         } catch (Exception ignore) {}
 
         Shape[] shapes = {
-                   new Shape("sphere", new Vector3(0, -2, 3), new Vector3(2, 1, .2), new Vector3(30, 90,20),
-                   new ObjectProperties(new Vector3(1, 0, 1), 2, .1, .3, .4, .3, new Texture("bricks.jpg"))),
-                   new Shape("sphere", new Vector3(0, 2, 3), new Vector3(1, 1, 1), new Vector3(0, 0,0 ),
+                   new Shape("sphere", new Vector3(0, 0, -3), new Vector3(1, 1, 1), new Vector3(30, 90,20),
+                   new ObjectProperties(new Vector3(1, 0, 1), 0, 0, .4, 0, 0, new Texture("plasma.jpg"))),
+                   new Shape("sphere", new Vector3(-2, 2, -3), new Vector3(1, 1, 1), new Vector3(0, 0,0 ),
                    new ObjectProperties( new Vector3(1, 0, 1), 0, .1, .2, .3, .1)),
-                   new Shape("cube", new Vector3(0,2,-3), new Vector3(1, 1, 1), new Vector3(0, 0, 0),
-                   new ObjectProperties( new Vector3(1, .5, .3), 0, 0, .3, 1, 0)),
-                   new Shape("sphere", new Vector3(0, -4, 0), new Vector3(500, 0.001, 500), new Vector3(0, 0,0),
+                   new Shape("sphere", new Vector3(-3, -1, -5), new Vector3(1, 1, 1), new Vector3(0, 0,0 ),
+                   new ObjectProperties( new Vector3(1, 0, 0), 1, 0, 0, 0, 0)),
+                   new Shape("cube", new Vector3(3, -1, -5), new Vector3(1, 2, 1), new Vector3(0, 0,0 ),
+                   new ObjectProperties( new Vector3(0, 0, 1), 0, .1, 0, 0, .5, new Texture("bricks.jpg"))),
+                   new Shape("cube", new Vector3(1,2,-3), new Vector3(1, 1, 1), new Vector3(0, 0, 0),
+                   new ObjectProperties( new Vector3(0, 1, 0), 0, 0, .3, 1, 0)),
+                   new Shape("cube", new Vector3(0, -4, 0), new Vector3(500, 0, 500), new Vector3(0, 0,0),
                    new ObjectProperties(new Vector3(.5, .5, .5))),
         };
 
