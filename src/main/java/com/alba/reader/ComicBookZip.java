@@ -18,6 +18,11 @@ public class ComicBookZip {
     private ComicBookZip() {
     }
 
+    /**
+     * @param fileName
+     * @return a ComicBook
+     * @throws IOException
+     */
     public static ComicBook load(String fileName) throws IOException {
         String ext = fileName.substring(fileName.lastIndexOf('.'));
         if (!ext.equals(CBZ)) {
@@ -27,13 +32,18 @@ public class ComicBookZip {
         return load(file);
     }
 
+    /**
+     * @param file
+     * @return a ComicBook
+     * @throws IOException
+     */
     public static ComicBook load(File file) throws IOException {
         if (!file.exists()) {
             throw new FileNotFoundException();
         }
 
         // Unzip and get image entries
-        List<ZipEntry> imageEntries = unzip(file, Arrays.asList("jpg", "jpeg", "png", "gif"));
+        List<ZipEntry> imageEntries = getMatchingEntries(file, Arrays.asList("jpg", "jpeg", "png", "gif"));
         List<BufferedImage> images = processImageEntries(file, imageEntries);
 
         // Process metadata entries
@@ -46,7 +56,14 @@ public class ComicBookZip {
         return new ComicBook(file.getName(), pages);
     }
 
-    public static List<ZipEntry> unzip(File file, List<String> fileTypes) throws IOException {
+    /**
+     * Find entries in the archive that match any of the given strings
+     * @param file
+     * @param fileTypes
+     * @return a list of entries
+     * @throws IOException
+     */
+    public static List<ZipEntry> getMatchingEntries(File file, List<String> fileTypes) throws IOException {
         List<ZipEntry> entries = new ArrayList<>();
 
         try (ZipFile zip = new ZipFile(file)) {
@@ -67,6 +84,13 @@ public class ComicBookZip {
         return entries;
     }
 
+    /**
+     * Process multiple images
+     * @param file
+     * @param imageEntries
+     * @return a list of images
+     * @throws IOException
+     */
     private static List<BufferedImage> processImageEntries(File file, List<ZipEntry> imageEntries) throws IOException {
         List<BufferedImage> images;
 
@@ -80,6 +104,12 @@ public class ComicBookZip {
         return images;
     }
 
+    /**
+     * Process a single entry
+     * @param zip
+     * @param entry
+     * @return an image
+     */
     private static BufferedImage processImageEntry(ZipFile zip, ZipEntry entry) {
         try (InputStream is = zip.getInputStream(entry)) {
             BufferedImage image = ImageIO.read(is);
@@ -90,9 +120,14 @@ public class ComicBookZip {
         return null; // Return null for any failed image processing
     }
 
+    /**
+     * Extract metadata from the zip and save it in the comic list
+     * @param file
+     * @throws IOException
+     */
     private static void processMetadataEntries(File file) throws IOException {
         // Get XML entries using unzip method
-        List<ZipEntry> xmlEntries = unzip(file, Collections.singletonList("xml"));
+        List<ZipEntry> xmlEntries = getMatchingEntries(file, Collections.singletonList("xml"));
         ConcurrentHashMap<String, Object> metadata = new ConcurrentHashMap<>();
 
         try (ZipFile zip = new ZipFile(file)) {
@@ -103,6 +138,12 @@ public class ComicBookZip {
         }
     }
 
+    /**
+     * Process a single metadata entry
+     * @param zip
+     * @param entry
+     * @param metadata
+     */
     private static void processMetadataEntry(ZipFile zip, ZipEntry entry, ConcurrentHashMap<String, Object> metadata) {
         try (InputStream inputStream = zip.getInputStream(entry)) {
             MetadataManager metadataManager = new MetadataManager(inputStream);
@@ -115,6 +156,13 @@ public class ComicBookZip {
         } catch (IOException ignored) {}
     }
 
+    /**
+     * Update the comic list with the relevant information obtained through unzipping
+     * @param fileName
+     * @param metadata
+     * @param path
+     * @throws IOException
+     */
     private static void updateComicList(String fileName, JSONObject metadata, String path) throws IOException {
         ComicListManager comicListManager = new ComicListManager();
         comicListManager.updateJSON(fileName, metadata, path);

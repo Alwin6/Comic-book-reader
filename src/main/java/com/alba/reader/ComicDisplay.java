@@ -310,7 +310,7 @@ public class ComicDisplay extends JFrame {
         if (FileTypeDetector.isNhl(path)) {
             totalPages = ComicBookNhl.getImagesFromGifInZip(comicFile).size();
         }else if (FileTypeDetector.isZip(path)) {
-            totalPages = ComicBookZip.unzip(comicFile, Arrays.asList("jpg", "jpeg", "png", "gif")).size();
+            totalPages = ComicBookZip.getMatchingEntries(comicFile, Arrays.asList("jpg", "jpeg", "png", "gif")).size();
         }else if (FileTypeDetector.isRar(path)) {
             totalPages = ComicBookRar.getMatchingEntries(comicFile, Arrays.asList("jpg", "jpeg", "png", "gif")).size();
         }else{
@@ -326,7 +326,7 @@ public class ComicDisplay extends JFrame {
         if(FileTypeDetector.isNhl(path)) {
             thumbnail = new ImageIcon(ComicBookNhl.getImagesFromGifInZip(comicFile).getLast());
         }else if (FileTypeDetector.isZip(path)) {
-            ZipEntry thumbnailEntry = ComicBookZip.unzip(comicFile, Arrays.asList("jpg", "jpeg", "png", "gif")).getFirst();
+            ZipEntry thumbnailEntry = ComicBookZip.getMatchingEntries(comicFile, Arrays.asList("jpg", "jpeg", "png", "gif")).getFirst();
             ZipFile zip = new ZipFile(comicFile);
             InputStream is = zip.getInputStream(thumbnailEntry);
             thumbnail = new ImageIcon(ImageIO.read(is));

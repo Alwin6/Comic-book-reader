@@ -13,6 +13,12 @@ public class LocalAppDataUtil {
 
     private static final String LOCAL_APP_DATA = System.getenv("LOCALAPPDATA");
 
+    /**
+     * Copy a file to the local appdata and replace it if it already exists
+     * @param sourcePath
+     * @param targetPath the target path is located in the local appdata
+     * @throws IOException
+     */
     public static void copyToLocalAppData(String sourcePath, String targetPath) throws IOException {
         File sourceFile = new File(sourcePath);
         if (!sourceFile.exists()) {
@@ -38,6 +44,12 @@ public class LocalAppDataUtil {
         }
     }
 
+    /**
+     * Copy the files of a specific directory to another directory
+     * @param source
+     * @param destination
+     * @throws IOException
+     */
     private static void copyDirectory(Path source, Path destination) throws IOException {
         if (!Files.exists(destination)) {
             Files.createDirectories(destination);
@@ -56,6 +68,12 @@ public class LocalAppDataUtil {
         });
     }
 
+    /**
+     * Create an empty file in the appdata if it does not already exist
+     * @param fileName
+     * @param targetPath the directory in the local appdata in which the file should be created
+     * @throws IOException
+     */
     public static void createFileInLocalAppData(String fileName, String targetPath) throws IOException {
         File targetDir = new File(LOCAL_APP_DATA, targetPath);
         if (!targetDir.exists()) {
@@ -67,6 +85,12 @@ public class LocalAppDataUtil {
         }
     }
 
+    /**
+     * Create an empty directory in the appdata if it does not already exist
+     * @param dirName
+     * @param targetPath the directory in the local appdata in which the directory should be created
+     * @throws IOException
+     */
     public static void createDirectoryInLocalAppData(String dirName, String targetPath) throws IOException {
         File newDir = new File(LOCAL_APP_DATA + targetPath, dirName);
         if (!newDir.exists()) {
@@ -74,6 +98,13 @@ public class LocalAppDataUtil {
         }
     }
 
+    /**
+     * Get a file from the local appdata
+     * @param fileName
+     * @param targetPath the path in the local appdata from which the file should be retrieved
+     * @return a file
+     * @throws IOException
+     */
     public static File getFile(String fileName, String targetPath) throws IOException {
         File file = new File(LOCAL_APP_DATA + targetPath, fileName);
         if (!file.exists()) {
@@ -82,6 +113,12 @@ public class LocalAppDataUtil {
         return file;
     }
 
+    /**
+     * Write a file to a file
+     * @param targetFilePath
+     * @param sourceFile
+     * @throws IOException
+     */
     public static void writeFile(String targetFilePath, File sourceFile) throws IOException {
         File targetFile = new File(targetFilePath);
         if (!sourceFile.exists()) {
@@ -91,6 +128,12 @@ public class LocalAppDataUtil {
         Files.copy(sourceFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
     }
 
+    /**
+     * Overwrite a file in the local appdata with a string
+     * @param targetFilePath the path in the local appdata that refers to the file we want to write to
+     * @param Content
+     * @throws IOException
+     */
     public static void writeStringToFile(String targetFilePath, String Content) throws IOException {
 
         try (FileWriter file = new FileWriter(LOCAL_APP_DATA + targetFilePath)) {
@@ -99,10 +142,19 @@ public class LocalAppDataUtil {
         }
     }
 
+    /**
+     * @param dirName
+     * @param targetPath the path to the directory which contains the directory dirName
+     * @return a list of strings corresponding to the contents of a directory
+     * @throws IOException
+     */
     public static List<String> listDirectoryContents(String dirName, String targetPath) throws IOException {
         return FileTools.listDirectoryContents(dirName, LOCAL_APP_DATA + targetPath);
     }
 
+    /**
+     * @return a JSONObject of the settings file in the local appdata
+     */
     public static JSONObject getSettingsObject(){
         File settingsFile;
         FileReader reader;
@@ -116,6 +168,10 @@ public class LocalAppDataUtil {
         return new JSONObject(jsonTokener);
     }
 
+    /**
+     * Create the needed files in the local appdata, fill the settings if it was empty
+     * @throws IOException
+     */
     public static void init() throws IOException {
         // Initialize directories and files here that always have to be there
         createDirectoryInLocalAppData("Alba", "");

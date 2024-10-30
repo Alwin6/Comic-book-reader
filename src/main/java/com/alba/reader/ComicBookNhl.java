@@ -16,6 +16,11 @@ public class ComicBookNhl {
 
     public static final String NHL = ".nhlcomic";
 
+    /**
+     * @param fileName
+     * @return a ComicBook
+     * @throws IOException
+     */
     public static ComicBook load(String fileName) throws IOException {
         String ext = fileName.substring(fileName.lastIndexOf('.'));
         if (!ext.equals(NHL)) {
@@ -25,6 +30,11 @@ public class ComicBookNhl {
         return load(file);
     }
 
+    /**
+     * @param file
+     * @return a ComicBook
+     * @throws IOException
+     */
     public static ComicBook load(File file) throws IOException {
         if (!file.exists()) {
             throw new FileNotFoundException();
@@ -33,6 +43,12 @@ public class ComicBookNhl {
         return new ComicBook(file.getName(),getPagesFromGifInZip(file));
     }
 
+    /**
+     * Extract the images found within the NHL file's gif file
+     * @param file
+     * @return an array of pages
+     * @throws IOException
+     */
     public static ComicPage[] getPagesFromGifInZip(File file) throws IOException {
         try (ZipFile zip = new ZipFile(file)) {
             Enumeration<? extends ZipEntry> entries = zip.entries();
@@ -82,6 +98,12 @@ public class ComicBookNhl {
         }
     }
 
+    /**
+     * Extract the images found within the NHL file's gif file
+     * @param file
+     * @return a list of images
+     * @throws IOException
+     */
     public static List<BufferedImage> getImagesFromGifInZip(File file) throws IOException {
         List<BufferedImage> images = new ArrayList<>();
 

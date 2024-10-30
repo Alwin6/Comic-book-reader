@@ -8,6 +8,10 @@ import java.io.*;
 import static com.alba.reader.LocalAppDataUtil.getFile;
 
 public class LanguageManager {
+    /**
+     * @return a JSONObject containing the language strings of the currently selected language
+     * @throws IOException
+     */
     public static JSONObject LoadLanguage() throws IOException {
         File file;
         try {

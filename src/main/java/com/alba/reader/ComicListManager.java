@@ -15,6 +15,11 @@ public class ComicListManager {
 
     }
 
+    /**
+     * @param filename
+     * @return the metadata associated with an entry in the comic list
+     * @throws IOException
+     */
     public JSONObject getMetadata(String filename) throws IOException {
         try (FileReader reader = LoadComicList()) {
             JSONTokener jsonTokener = new JSONTokener(reader);
@@ -24,6 +29,12 @@ public class ComicListManager {
         }
     }
 
+    /**
+     * Update and dave the metadata associated with an entry in the comic list
+     * @param entries entries are formatted as a list of strings: even elements are keys, odd elements are values (assume 0 indexing)
+     * @param filename
+     * @throws IOException
+     */
     public void updateMetadata(List<String> entries, String filename) throws IOException {
         try (FileReader reader = LoadComicList()) {
             JSONTokener jsonTokener = new JSONTokener(reader);
@@ -45,6 +56,12 @@ public class ComicListManager {
         }
     }
 
+    /**
+     * Update and save a single field for an entry in the comic list
+     * @param filename
+     * @param field
+     * @param value
+     */
     public static void updateField(String filename, String field, Object value) {
         try (FileReader reader = LoadComicList()) {
             JSONTokener jsonTokener = new JSONTokener(reader);
@@ -61,6 +78,10 @@ public class ComicListManager {
         } catch (IOException ignore) {}
     }
 
+    /**
+     * Remove an entry from the comic list
+     * @param filename
+     */
     public static void remove(String filename) {
         try (FileReader reader = LoadComicList()) {
             JSONTokener jsonTokener = new JSONTokener(reader);
@@ -72,6 +93,11 @@ public class ComicListManager {
         } catch (IOException ignore) {}
     }
 
+    /**
+     * Rename an entry of the comic list
+     * @param filename
+     * @param name
+     */
     public static void rename(String filename, String name) {
         try (FileReader reader = LoadComicList()) {
             JSONTokener jsonTokener = new JSONTokener(reader);
@@ -104,6 +130,12 @@ public class ComicListManager {
         } catch (IOException ignore) {}
     }
 
+    /**
+     * Return the value of a field associated with an entry of the comic list
+     * @param filename
+     * @param field
+     * @return an object that should be cast to the expected type
+     */
     public static Object readField(String filename, String field) {
         try (FileReader reader = LoadComicList()) {
             JSONTokener jsonTokener = new JSONTokener(reader);
@@ -118,6 +150,13 @@ public class ComicListManager {
         }
     }
 
+    /**
+     * Update the comic list with a new entry, or an old entry
+     * @param filename
+     * @param metadata
+     * @param path
+     * @throws IOException
+     */
     public void updateJSON(String filename, JSONObject metadata, String path) throws IOException {
         try (FileReader reader = LoadComicList()) {
             JSONTokener jsonTokener = new JSONTokener(reader);
@@ -162,6 +201,11 @@ public class ComicListManager {
         }
     }
 
+    /**
+     * Helper function to load the comic list and create it if it does not exist
+     * @return A FileReader
+     * @throws IOException
+     */
     public static FileReader LoadComicList() throws IOException {
         createFileInLocalAppData("ComicList.json", "/Alba/ComicReader");
         File comicL = getFile("ComicList.json", "/Alba/ComicReader");

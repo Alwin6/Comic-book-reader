@@ -25,10 +25,17 @@ public class HelpMenu {
         helpMenu.add(controlsItem);
     }
 
+    /**
+     * @return the helpMenu JMenu object
+     */
     public JMenu getMenu() {
         return helpMenu;
     }
 
+    /**
+     * Opens a JOptionPane with the controls of the application
+     * @param e ActionEvent
+     */
     private void showControlsDialog(ActionEvent e) {
         String controls = lang.getString("controlsBody");
 

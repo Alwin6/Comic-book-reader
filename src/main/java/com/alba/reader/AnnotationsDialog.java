@@ -10,6 +10,12 @@ import java.io.IOException;
 
 public class AnnotationsDialog {
 
+
+    /**
+     * Show a dialog box with the annotation of a page of a comic
+     * @param file
+     * @param page
+     */
     public static void AnnotationsDialog(File file, int page) {
         JSONObject lang;
         try {

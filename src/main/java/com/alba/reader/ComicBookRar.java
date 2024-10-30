@@ -20,6 +20,11 @@ public class ComicBookRar {
     private ComicBookRar() {
     }
 
+    /**
+     * @param fileName
+     * @return a ComicBook
+     * @throws IOException
+     */
     public static ComicBook load(String fileName) throws IOException {
         String ext = fileName.substring(fileName.lastIndexOf('.'));
         if (!ext.equals(CBR)) {
@@ -29,6 +34,11 @@ public class ComicBookRar {
         return load(file);
     }
 
+    /**
+     * @param file
+     * @return a ComicBook
+     * @throws IOException
+     */
     public static ComicBook load(File file) throws IOException {
         if (!file.exists()) {
             throw new FileNotFoundException();
@@ -43,6 +53,12 @@ public class ComicBookRar {
         return new ComicBook(file.getName(), pages);
     }
 
+    /**
+     * Extract the images from the archive
+     * @param file
+     * @return a list of images
+     * @throws IOException
+     */
     private static List<BufferedImage> extractImages(File file) throws IOException {
         List<BufferedImage> images = new ArrayList<>();
         JSONObject metadata = new JSONObject();
@@ -83,6 +99,13 @@ public class ComicBookRar {
         return images; // Return the list of images
     }
 
+    /**
+     * Find entries in the archive that match any of the given strings
+     * @param file
+     * @param fileTypes
+     * @return a list of file headers
+     * @throws IOException
+     */
     public static List<FileHeader> getMatchingEntries(File file, List<String> fileTypes) throws IOException {
         List<FileHeader> entries = new ArrayList<>();
 
@@ -107,6 +130,12 @@ public class ComicBookRar {
         return entries; // Return the list of matching entries
     }
 
+    /**
+     * Return the first image found in the archive
+     * @param file
+     * @return an image
+     * @throws IOException
+     */
     public static BufferedImage extractFirstImage(File file) throws IOException {
         BufferedImage firstImage = null;
         try (Archive archive = new Archive(file)) {
