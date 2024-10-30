@@ -10,3 +10,4 @@ De functies zijn:
 - comicbibliotheek waar je alle comics ziet die je ooit hebt geopend, met de eerste pagina als thumbnail en wat standaard metadata
 - verdergaan waar je was gebleven
 - zoek en sorteer functies
+- meerdere talen beschikbaar
