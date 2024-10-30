@@ -14,6 +14,9 @@ public class ViewMenu {
     private final JMenu viewMenu;
     private final JSONObject lang;
 
+    /**Initializes the ViewMenu wih all of the actions
+     * @param comicReader
+     */
     public ViewMenu(ComicReader comicReader) {
 
         try {
@@ -48,12 +51,18 @@ public class ViewMenu {
         viewMenu.add(language);
     }
 
+    /**This gets the ViewMenu
+     * @return viewMenu
+     */
     public JMenu getMenu() {
         return viewMenu;
     }
 
 
-    private void showLanguageDialog(ActionEvent e) {
+    /**Shows the dialog for changing the language
+     * @param actionEvent
+     */
+    private void showLanguageDialog(ActionEvent actionEvent) {
         JPanel panel = new JPanel();
         String controls = lang.getString("selectLanguage");
         JLabel label = new JLabel(controls);

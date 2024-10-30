@@ -11,6 +11,9 @@ import java.util.List;
 public class OpenMenu {
     private final JMenu openMenu;
 
+    /**Initializes the OpenMenu
+     * @param comicReader
+     */
     public OpenMenu(ComicReader comicReader) {
         JSONObject lang;
         try {
@@ -46,6 +49,9 @@ public class OpenMenu {
         openMenu.add(openMetadataItem);
     }
 
+    /**Gets the OpenMenu
+     * @return openMenu
+     */
     public JMenu getMenu() {
         return openMenu;
     }

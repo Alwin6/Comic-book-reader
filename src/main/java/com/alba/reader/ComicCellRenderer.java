@@ -12,6 +12,14 @@ class ComicCellRenderer extends DefaultListCellRenderer {
     private static final int IMAGE_HEIGHT = 320; // Desired height for scaling
     private final Map<ImageIcon, ImageIcon> imageCache = new HashMap<>();
 
+    /**
+     * @param list         The JList we're painting.
+     * @param value        The value returned by list.getModel().getElementAt(index).
+     * @param index        The cells index.
+     * @param isSelected   True if the specified cell was selected.
+     * @param cellHasFocus True if the specified cell has the focus.
+     * @return comicPanel
+     */
     @Override
     public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
         if (value instanceof Comic comic) {
@@ -60,6 +68,10 @@ class ComicCellRenderer extends DefaultListCellRenderer {
         return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
     }
 
+    /**Handels caching icons
+     * @param icon The image icon
+     * @return ImageIcon
+     */
     private ImageIcon getScaledIcon(ImageIcon icon) {
         // Check if the scaled image is already cached
         if (imageCache.containsKey(icon)) {

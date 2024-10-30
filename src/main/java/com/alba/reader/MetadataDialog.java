@@ -12,6 +12,9 @@ import java.util.Objects;
 
 public class MetadataDialog {
 
+    /**Makes the metadata dialog and gets the metadata to fill it in
+     * @param file
+     */
     public static void MetadataDialog(File file) {
 
         JSONObject metadataObject;

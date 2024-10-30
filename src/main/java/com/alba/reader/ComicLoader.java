@@ -14,6 +14,9 @@ public class ComicLoader {
         this.progressBar = progressBar;
     }
 
+    /**
+     * Loads the comic in the background depending on which file format it is
+     */
     public void loadComicInBackground() {
         worker = new SwingWorker<>() {
             @Override
@@ -58,10 +61,16 @@ public class ComicLoader {
         worker.execute();
     }
 
+    /**Gets the ComicBook
+     * @return ComicBook
+     */
     public ComicBook getComicBook() {
         return comicBook;
     }
 
+    /**Gets the worker
+     * @return worker
+     */
     public SwingWorker<ComicBook, Integer> getWorker() {
         return worker;
     }

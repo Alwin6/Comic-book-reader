@@ -40,6 +40,9 @@ public class ComicReader extends JFrame {
     private final JSONObject lang;
     private int currentPage;
 
+    /**Initializes the ComicReader
+     * @throws IOException
+     */
     public ComicReader() throws IOException {
         LocalAppDataUtil.init();
 
@@ -71,10 +74,13 @@ public class ComicReader extends JFrame {
         setupMouseWheelZoom();
 
 
-        toggleDarkMode(settings.getBoolean("darkMode"));
+        setLightingMode(settings.getBoolean("darkMode"));
         setVisible(true);
     }
 
+    /**Sets up the frame for the window
+     * @param lang
+     */
     private void setupFrame(JSONObject lang) {
         setTitle(lang.optString("comicReader"));
         setSize(1280, 720);
@@ -83,6 +89,9 @@ public class ComicReader extends JFrame {
         setLayout(new BorderLayout());
     }
 
+    /**
+     * Sets up the ScrollPane
+     */
     private void setupScrollPane() {
         imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -92,11 +101,17 @@ public class ComicReader extends JFrame {
         add(scrollPane, BorderLayout.CENTER);
     }
 
+    /**
+     * Sets up the ProgressBar
+     */
     private void setupProgressBar() {
         progressBar.setVisible(false);
         add(progressBar, BorderLayout.NORTH);
     }
 
+    /**
+     * Sets up the buttons to move between pages
+     */
     private void setupButtons() {
         JButton prevButton = new JButton("<");
         JButton nextButton = new JButton(">");
@@ -120,6 +135,9 @@ public class ComicReader extends JFrame {
         add(nextButton, BorderLayout.EAST);
     }
 
+    /**
+     * Sets up the MenuBar with the menu's
+     */
     private void setupMenuBar() {
         menuBar.add(openMenu.getMenu());
         menuBar.add(viewMenu.getMenu());
@@ -127,6 +145,9 @@ public class ComicReader extends JFrame {
         setJMenuBar(menuBar);
     }
 
+    /**
+     * Sets up the keybindings
+     */
     private void setupKeyBindings() {
         InputMap inputMap = scrollPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap actionMap = scrollPane.getActionMap();
@@ -140,6 +161,13 @@ public class ComicReader extends JFrame {
         bindKeyAction(inputMap, actionMap, "P", "promptPage", e -> promptForPage());
     }
 
+    /**This generates a keybind with the parameters
+     * @param inputMap
+     * @param actionMap
+     * @param key
+     * @param name
+     * @param action
+     */
     private void bindKeyAction(InputMap inputMap, ActionMap actionMap, String key, String name, ActionListener action) {
         inputMap.put(KeyStroke.getKeyStroke(key), name);
         actionMap.put(name, new AbstractAction() {
@@ -150,11 +178,17 @@ public class ComicReader extends JFrame {
         });
     }
 
+    /**This scrolls the ScrollBar by the given amount
+     * @param delta
+     */
     private void scroll(int delta) {
         JScrollBar verticalScrollBar = scrollPane.getVerticalScrollBar();
         verticalScrollBar.setValue(verticalScrollBar.getValue() + delta);
     }
 
+    /**
+     * Sets up that if you hold down control and scroll the mousewheel it zooms in and out
+     */
     private void setupMouseWheelZoom() {
         scrollPane.addMouseWheelListener(e -> {
             if (e.isControlDown()) {
@@ -163,6 +197,9 @@ public class ComicReader extends JFrame {
         });
     }
 
+    /**
+     * Opens a FileChooser window to select a comic file to open
+     */
     public void openComic() {
         clearComic();
 
@@ -176,6 +213,9 @@ public class ComicReader extends JFrame {
         }
     }
 
+    /**This opens the comic file given
+     * @param comicFile
+     */
     public void openComicFile(File comicFile) {
         clearComic();
 
@@ -184,6 +224,9 @@ public class ComicReader extends JFrame {
         loadComicInBackground(comicFile, currentPage); // Load the comic
     }
 
+    /**
+     * Clears the comic data to make room for the next one
+     */
     public void clearComic(){
         // Clear the current comic and its resources
         if (comicBook != null) {
@@ -195,14 +238,24 @@ public class ComicReader extends JFrame {
         }
     }
 
+    /**Gets the current comic
+     * @return comic file
+     */
     public File getCurrentComic() {
         return currentComic;
     }
 
+    /**Gets the current page index
+     * @return current page index
+     */
     public int getCurrentPageIndex() {
         return currentPageIndex;
     }
 
+    /**Loads the comic from the file
+     * @param comic
+     * @param currentPage
+     */
     private void loadComicInBackground(File comic, int currentPage) {
         progressBar.setVisible(true);
         ComicLoader loader = new ComicLoader(comic, progressBar);
@@ -225,6 +278,9 @@ public class ComicReader extends JFrame {
         });
     }
 
+    /**Shows the page which belongs to the index given
+     * @param index
+     */
     private void showPage(int index) {
         if (comicBook == null) {
             showError(lang.getString("loadingError"));
@@ -252,6 +308,9 @@ public class ComicReader extends JFrame {
         }
     }
 
+    /**Updates the Image of the current page which is visible according to the updated zoom factor and also caches the image
+     * @param page
+     */
     private void updateImage(ComicPage page) {
         // Check if the page image is null, if so exit
         BufferedImage image = page.image();
@@ -278,6 +337,11 @@ public class ComicReader extends JFrame {
         scrollPane.getVerticalScrollBar().setValue(0);
     }
 
+    /**Scales the image according to the zoom factor given
+     * @param image
+     * @param zoomFactor
+     * @return The scaled Image
+     */
     private BufferedImage scaleImage(BufferedImage image, float zoomFactor) {
         BufferedImage scaledImage = new BufferedImage(
                 (int) (image.getWidth() * zoomFactor),
@@ -290,6 +354,9 @@ public class ComicReader extends JFrame {
         return scaledImage;
     }
 
+    /**
+     * Shows the dialog for going to any page
+     */
     private void promptForPage() {
         JDialog dialog = new JDialog(this, lang.getString("pagePrompt"), true);
         JTextField pageNumberField = new JTextField(5);
@@ -323,6 +390,9 @@ public class ComicReader extends JFrame {
         pageNumberField.requestFocusInWindow();
     }
 
+    /**Goes to the page which is given
+     * @param pageNumberField
+     */
     private void goToPage(JTextField pageNumberField) {
         try {
             if(Objects.equals(pageNumberField.getText(), "tracer")) {
@@ -344,16 +414,25 @@ public class ComicReader extends JFrame {
         }
     }
 
+    /**
+     * Makes the Image fill the Width
+     */
     public void fillWidth() {
         zoomFactor = (float) scrollPane.getWidth() / comicBook.getPage(currentPageIndex).getWidth();
         showPage(currentPageIndex);
     }
 
+    /**
+     * Makes the Image fill the Height
+     */
     public void fillHeight() {
         zoomFactor = (float) scrollPane.getHeight() / comicBook.getPage(currentPageIndex).getHeight();
         showPage(currentPageIndex);
     }
 
+    /**Zooms in and out
+     * @param factor
+     */
     public void zoom(float factor) {
         // Calculate new zoom factor
         float tempZoomFactor = zoomFactor * factor;
@@ -372,6 +451,9 @@ public class ComicReader extends JFrame {
         }
     }
 
+    /**
+     * Toggles Dark mode and writes the change to the settings file
+     */
     public void toggleDarkMode() {
         if (!FlatLaf.isLafDark()) {
             FlatDarkLaf.setup();
@@ -390,7 +472,10 @@ public class ComicReader extends JFrame {
         FlatLaf.updateUI();
     }
 
-    public void toggleDarkMode(boolean mode) {
+    /**Sets the appearance of the window to The light mode which is given
+     * @param mode
+     */
+    public void setLightingMode(boolean mode) {
         if (mode) {
             FlatDarkLaf.setup();
         } else {
@@ -399,10 +484,16 @@ public class ComicReader extends JFrame {
         FlatLaf.updateUI();
     }
 
+    /**Shows the error message which is given in a message box
+     * @param message
+     */
     private void showError(String message) {
         JOptionPane.showMessageDialog(this, message, lang.getString("error"), JOptionPane.ERROR_MESSAGE);
     }
 
+    /**
+     * Initializes the ComicReader and ComicDisplay
+     */
     public static void init() {
         SwingUtilities.invokeLater(() -> {
             ComicReader comicReader;

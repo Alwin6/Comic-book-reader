@@ -31,21 +31,35 @@ public class Comic {
         this.ID = ID;
     }
 
-    // Convert timestamp to date string
+    /**
+     * Returns the date in 'yyyy-mm-dd hh:mm:ss' format as a string
+     * @param timestamp
+     * @return date
+     */
     private String convertTimestampToDate(long timestamp) {
         Date date = new Date(timestamp * 1000); // Convert seconds to milliseconds
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return formatter.format(date);
     }
 
+    /**
+     * Sets the thumbnail
+     * @param thumbnail
+     */
     public void setThumbnail(ImageIcon thumbnail) {
         this.thumbnail = thumbnail;
     }
 
+    /**Returns the thumbnail
+     * @return thumbnail
+     */
     public ImageIcon getThumbnail() {
         return thumbnail;
     }
 
+    /**Returns the filepath
+     * @return filepath
+     */
     public String getFilePath(){
         return filePath;
     }

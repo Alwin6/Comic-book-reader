@@ -22,6 +22,10 @@ public class ComicDisplay extends JFrame {
     private final ComicReader comicReader; // Reference to ComicReader
     private final JList<Comic> comicList;
 
+    /**Initializes the ComicDisplay
+     * @param comics
+     * @param comicReader
+     */
     public ComicDisplay(List<Comic> comics, ComicReader comicReader) {
         this.comicReader = comicReader;
         JSONObject lang;
@@ -209,6 +213,9 @@ public class ComicDisplay extends JFrame {
         loadThumbnails(comics);
     }
 
+    /**Loads the thumbnails in the background
+     * @param comics
+     */
     private void loadThumbnails(List<Comic> comics) {
         SwingWorker<Void, Comic> worker = new SwingWorker<>() {
             @Override
@@ -242,6 +249,9 @@ public class ComicDisplay extends JFrame {
         worker.execute();
     }
 
+    /**Opens the comic which is selected
+     * @param filePath
+     */
     private void onComicSelected(String filePath) {
         File comicFile = new File(filePath);
         if (comicReader != null) {
@@ -252,6 +262,10 @@ public class ComicDisplay extends JFrame {
         }
     }
 
+    /**This gets the list of comics
+     * @return List of Comics
+     * @throws IOException
+     */
     public static List<Comic> parseComics() throws IOException {
         // Read the file contents
         // You know there's LoadComicList for that, right?
@@ -296,6 +310,9 @@ public class ComicDisplay extends JFrame {
         return comicsList;
     }
 
+    /**This updates the comics
+     * @param newComics
+     */
     public void updateComics(List<Comic> newComics) {
         DefaultListModel<Comic> model = (DefaultListModel<Comic>) comicList.getModel();
         model.clear(); // Clear the existing list
@@ -304,6 +321,11 @@ public class ComicDisplay extends JFrame {
         }
     }
 
+    /**This gets the total amountt of pages from a comic
+     * @param path
+     * @return Total amount of pages
+     * @throws IOException
+     */
     private static int getTotalPages(String path) throws IOException {
         int totalPages;
         File comicFile = new File(path);
@@ -320,6 +342,11 @@ public class ComicDisplay extends JFrame {
         return totalPages;
     }
 
+    /**Return the first page of a comic for a thumbnail
+     * @param path
+     * @return Thumbnail
+     * @throws IOException
+     */
     private static ImageIcon getThumbnail(String path) throws IOException {
         ImageIcon thumbnail;
         File comicFile = new File(path);
@@ -338,10 +365,22 @@ public class ComicDisplay extends JFrame {
         return thumbnail;
     }
 
+    /**Shows the ComicDisplay window
+     * @param comics
+     * @param comicReader
+     */
     public static void showComicDisplay(List<Comic> comics, ComicReader comicReader) {
         SwingUtilities.invokeLater(() -> new ComicDisplay(comics, comicReader));
     }
 
+    /**Does the searching and sorting
+     * @param comics
+     * @param sortBy
+     * @param sortOrder
+     * @param filterBy
+     * @param search
+     * @param lang
+     */
     private void performSearchAction(List<Comic> comics, JComboBox<String> sortBy, JComboBox<String> sortOrder,
                                      JComboBox<String> filterBy, JTextField search, JSONObject lang) {
         List<Comic> newComics;
