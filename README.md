@@ -11,3 +11,7 @@ De functies zijn:
 - verdergaan waar je was gebleven
 - zoek en sorteer functies
 - meerdere talen beschikbaar
+
+Het programma gebruiken:
+Voer Main uit, Main bevindt zich in src/main/java/com/alba<br>
+Als het niet werkt probeer Maven te herladen
