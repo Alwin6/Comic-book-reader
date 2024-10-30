@@ -34,9 +34,9 @@ public class HelpMenu {
 
     /**
      * Opens a JOptionPane with the controls of the application
-     * @param e ActionEvent
+     * @param actionEvent
      */
-    private void showControlsDialog(ActionEvent e) {
+    private void showControlsDialog(ActionEvent actionEvent) {
         String controls = lang.getString("controlsBody");
 
         JOptionPane.showMessageDialog(null, controls, lang.getString("helpControls"), JOptionPane.INFORMATION_MESSAGE);
