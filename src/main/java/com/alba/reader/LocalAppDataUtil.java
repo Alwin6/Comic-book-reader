@@ -64,8 +64,6 @@ public class LocalAppDataUtil {
         File file = new File(targetDir, fileName);
         if (!file.exists()){
             Files.createFile(file.toPath());
-        } else{
-            System.out.println("File already exists: " + file.getAbsolutePath());
         }
     }
 
@@ -73,8 +71,6 @@ public class LocalAppDataUtil {
         File newDir = new File(LOCAL_APP_DATA + targetPath, dirName);
         if (!newDir.exists()) {
             Files.createDirectories(newDir.toPath());
-        } else {
-            System.out.println("Directory already exists: " + newDir.getAbsolutePath());
         }
     }
 

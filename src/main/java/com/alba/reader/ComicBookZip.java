@@ -33,11 +33,8 @@ public class ComicBookZip {
         }
 
         // Unzip and get image entries
-        long startTime = System.currentTimeMillis();
         List<ZipEntry> imageEntries = unzip(file, Arrays.asList("jpg", "jpeg", "png", "gif"));
         List<BufferedImage> images = processImageEntries(file, imageEntries);
-        long endTime = System.currentTimeMillis();
-        System.out.println("Total time taken for unzipping: " + (endTime - startTime) + " ms");
 
         // Process metadata entries
         processMetadataEntries(file);
@@ -52,10 +49,7 @@ public class ComicBookZip {
     public static List<ZipEntry> unzip(File file, List<String> fileTypes) throws IOException {
         List<ZipEntry> entries = new ArrayList<>();
 
-        System.out.println("Starting to unzip file: " + file.getName());
-
         try (ZipFile zip = new ZipFile(file)) {
-            long zipOpenStartTime = System.currentTimeMillis();
             Enumeration<? extends ZipEntry> zipEntries = zip.entries();
 
             while (zipEntries.hasMoreElements()) {
@@ -69,8 +63,6 @@ public class ComicBookZip {
                     }
                 }
             }
-            long zipOpenEndTime = System.currentTimeMillis();
-            System.out.println("Time taken to open zip and read entries: " + (zipOpenEndTime - zipOpenStartTime) + " ms");
         }
         return entries;
     }
@@ -79,14 +71,12 @@ public class ComicBookZip {
         List<BufferedImage> images;
 
         try (ZipFile zip = new ZipFile(file)) {
-            System.out.println("Processing images...");
             images = imageEntries.parallelStream()
                     .map(entry -> processImageEntry(zip, entry))
                     .filter(Objects::nonNull)  // Filter out any null images
                     .collect(Collectors.toList());
         }
 
-        System.out.println("Finished processing images. Total images processed: " + images.size());
         return images;
     }
 
@@ -94,14 +84,9 @@ public class ComicBookZip {
         try (InputStream is = zip.getInputStream(entry)) {
             BufferedImage image = ImageIO.read(is);
             if (image != null) {
-                System.out.println("Successfully read image: " + entry.getName());
                 return image; // Return the image
-            } else {
-                System.err.println("Failed to read image (null): " + entry.getName());
             }
-        } catch (IOException e) {
-            System.err.println("Error reading image entry: " + entry.getName() + " - " + e.getMessage());
-        }
+        } catch (IOException ignored) {}
         return null; // Return null for any failed image processing
     }
 
@@ -126,16 +111,12 @@ public class ComicBookZip {
             // Merge entryMetadata into metadata
             for (String key : entryMetadata.keySet()) {
                 metadata.put(key, entryMetadata.get(key));
-                System.out.println("Added metadata entry: " + key);
             }
-        } catch (IOException e) {
-            System.err.println("Error reading metadata entry: " + entry.getName() + " - " + e.getMessage());
-        }
+        } catch (IOException ignored) {}
     }
 
     private static void updateComicList(String fileName, JSONObject metadata, String path) throws IOException {
         ComicListManager comicListManager = new ComicListManager();
         comicListManager.updateJSON(fileName, metadata, path);
-        System.out.println("Updated comic list JSON for: " + fileName);
     }
 }

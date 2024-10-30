@@ -53,7 +53,6 @@ class ComicCellRenderer extends DefaultListCellRenderer {
 
             panel.add(textPanel, BorderLayout.SOUTH);
 
-            System.out.println(subtitleLabel.getPreferredSize());
             panel.setPreferredSize(new Dimension(254 + 20, IMAGE_HEIGHT + 60));
 
             return panel;

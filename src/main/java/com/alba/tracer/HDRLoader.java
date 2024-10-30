@@ -40,7 +40,6 @@ public class HDRLoader {
                 header.append(c);
                 if (c == '\n') {
                     String line = header.toString().trim();
-                    System.out.println("Header line: " + line);
                     header.setLength(0); // Clear the buffer
 
                     if (line.startsWith("#")) continue; // Skip comments
@@ -51,7 +50,6 @@ public class HDRLoader {
                         String[] resolution = line.split(" ");
                         height = Integer.parseInt(resolution[1]);
                         width = Integer.parseInt(resolution[3]);
-                        System.out.println("Image dimensions: Width = " + width + ", Height = " + height);
                         break;
                     }
                 }
@@ -162,15 +160,5 @@ public class HDRLoader {
 
         float[] pixel = imageData[y][x];  // Access the HDR data
         return new Vector3(pixel[0], pixel[1], pixel[2]);  // Convert to Vector3
-    }
-
-    // For testing purposes
-    public static void main(String[] args) {
-        try {
-            HDRLoader hdrLoader = new HDRLoader("tracer/Assets/autumn_field_puresky_2k.hdr");
-            System.out.println("Loaded HDR image with width: " + hdrLoader.getWidth() + " and height: " + hdrLoader.getHeight());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }

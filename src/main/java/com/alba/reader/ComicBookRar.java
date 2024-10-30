@@ -62,13 +62,8 @@ public class ComicBookRar {
                         BufferedImage image = ImageIO.read(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
                         if (image != null) {
                             images.add(image);
-
-                        } else {
-                            System.err.println("Failed to read image: " + fileHeader.getFileName());
                         }
-                    } catch (IOException e) {
-                        System.err.println("Error reading entry: " + fileHeader.getFileName());
-                    }
+                    } catch (IOException ignored) {}
                 }
 
                 if (!fileHeader.isDirectory() && fileHeader.getFileName().matches(".*\\.(xml)$")) {
@@ -91,10 +86,7 @@ public class ComicBookRar {
     public static List<FileHeader> getMatchingEntries(File file, List<String> fileTypes) throws IOException {
         List<FileHeader> entries = new ArrayList<>();
 
-        System.out.println("Starting to read RAR file: " + file.getName());
-
         try (Archive archive = new Archive(file)) {
-            long rarOpenStartTime = System.currentTimeMillis();
             FileHeader fileHeader = archive.nextFileHeader();
 
             while (fileHeader != null) {
@@ -108,8 +100,6 @@ public class ComicBookRar {
                 }
                 fileHeader = archive.nextFileHeader();
             }
-            long rarOpenEndTime = System.currentTimeMillis();
-            System.out.println("Time taken to open RAR and read entries: " + (rarOpenEndTime - rarOpenStartTime) + " ms");
         } catch (RarException e) {
             throw new IOException("Error reading RAR file", e);
         }
@@ -119,9 +109,7 @@ public class ComicBookRar {
 
     public static BufferedImage extractFirstImage(File file) throws IOException {
         BufferedImage firstImage = null;
-        System.out.println("Starting to read RAR file: " + file.getName());
         try (Archive archive = new Archive(file)) {
-            long rarOpenStartTime = System.currentTimeMillis();
             FileHeader fileHeader = archive.nextFileHeader();
             while (fileHeader != null) {
                 // Only process image files
@@ -137,17 +125,11 @@ public class ComicBookRar {
                         firstImage = ImageIO.read(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
                         if (firstImage != null) {
                             break; // Exit after processing the first image
-                        } else {
-                            System.err.println("Failed to read image: " + fileHeader.getFileName());
                         }
-                    } catch (IOException e) {
-                        System.err.println("Error reading entry: " + fileHeader.getFileName());
-                    }
+                    } catch (IOException ignored) {}
                 }
                 fileHeader = archive.nextFileHeader();
             }
-            long rarOpenEndTime = System.currentTimeMillis();
-            System.out.println("Time taken to open RAR and read image: " + (rarOpenEndTime - rarOpenStartTime) + " ms");
         } catch (RarException e) {
             throw new IOException("Error reading RAR file", e);
         }
