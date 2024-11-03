@@ -29,9 +29,17 @@ public class FileTypeDetector {
      */
     public static boolean isZip(File file) {
         try (ZipFile zip = new ZipFile(file)) {
-            return zip.entries().hasMoreElements();
+            // Check for the presence of .gif files to determine if it's an NHL comic
+            Enumeration<? extends ZipEntry> entries = zip.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                if (entry.getName().matches(".*\\.gif$")) {
+                    return false; // It's an NHL comic, so return false
+                }
+            }
+            return zip.entries().hasMoreElements(); // Return true if it's a ZIP file with no NHL comic content
         } catch (IOException e) {
-            return false;
+            return false; // Not a valid ZIP file
         }
     }
 
@@ -47,20 +55,19 @@ public class FileTypeDetector {
      * @param file
      * @return if the file is an nhlcomic file
      */
-    public static boolean isNhl(File file){
-        if (isZip(file)) {
-            try (ZipFile zip = new ZipFile(file)) {
-                Enumeration<? extends ZipEntry> entries = zip.entries();
-                while (entries.hasMoreElements()) {
-                    ZipEntry entry = entries.nextElement();
-                    if (entry.getName().matches(".*\\.(gif)$"))
-                        return true;
+    public static boolean isNhl(File file) {
+        try (ZipFile zip = new ZipFile(file)) {
+            Enumeration<? extends ZipEntry> entries = zip.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                if (entry.getName().matches(".*\\.gif$")) {
+                    return true; // Found a GIF, confirming it's an NHL comic
                 }
-            } catch (IOException e) {
-                return false;
             }
+        } catch (IOException e) {
+            return false; // If the file isn't a valid ZIP, return false
         }
-        return false;
+        return false; // No GIF found
     }
 
     /**

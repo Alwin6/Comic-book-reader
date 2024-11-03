@@ -36,7 +36,7 @@ public class Comic {
      * @param timestamp
      * @return date
      */
-    private String convertTimestampToDate(long timestamp) {
+    protected String convertTimestampToDate(long timestamp) {
         Date date = new Date(timestamp * 1000); // Convert seconds to milliseconds
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return formatter.format(date);

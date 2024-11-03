@@ -20,7 +20,7 @@ import java.util.zip.ZipFile;
 
 public class ComicDisplay extends JFrame {
     private final ComicReader comicReader; // Reference to ComicReader
-    private final JList<Comic> comicList;
+    final JList<Comic> comicList;
 
     /**Initializes the ComicDisplay
      * @param comics
@@ -252,13 +252,20 @@ public class ComicDisplay extends JFrame {
     /**Opens the comic which is selected
      * @param filePath
      */
-    private void onComicSelected(String filePath) {
+    void onComicSelected(String filePath) {
         File comicFile = new File(filePath);
-        if (comicReader != null) {
-            comicReader.openComicFile(comicFile); // Open the comic in ComicReader
+
+        // Check if the file exists and is a file (not a directory)
+        if (comicFile.exists() && comicFile.isFile()) {
+            if (comicReader != null) {
+                comicReader.openComicFile(comicFile); // Open the comic in ComicReader
+            } else {
+                // Handle the case where comicReader is null
+                JOptionPane.showMessageDialog(this, "Comic Reader is not available.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
         } else {
-            // Handle the case where comicReader is null if necessary
-            JOptionPane.showMessageDialog(this, "Comic Reader is not available.", "Error", JOptionPane.ERROR_MESSAGE);
+            // Show an error message if the file path is invalid
+            JOptionPane.showMessageDialog(this, "The specified file does not exist or is not a valid file.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
